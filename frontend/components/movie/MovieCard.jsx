@@ -29,6 +29,7 @@ export default function MovieCard({
       alt={movie.title}
       className="w-full h-full object-cover"
       loading="lazy"
+      referrerPolicy="no-referrer"
       onError={() => setImgError(true)}
     />
   ) : (
@@ -47,6 +48,7 @@ export default function MovieCard({
                 alt={movie.title}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
               />
             ) : (

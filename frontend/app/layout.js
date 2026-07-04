@@ -11,6 +11,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-CN">
+      <head>
+        <meta name="referrer" content="no-referrer" />
+      </head>
       <body className="bg-[#0F0F0F] text-white font-sans antialiased">
         <AuthProvider>
           <ToastProvider>
