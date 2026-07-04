@@ -10,6 +10,7 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const handleSearch = useCallback(
     (e) => {
@@ -47,7 +48,8 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
           </button>
           <Link
             href="/"
-            className="text-xl font-bold text-white flex items-center gap-2 select-none whitespace-nowrap"
+            title="返回首页"
+            className="text-xl font-bold text-white flex items-center gap-2 select-none whitespace-nowrap px-3 py-1 rounded-lg border border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.25)] hover:bg-[#272727] transition-all duration-200"
           >
             <span>🎬 电影APP</span>
           </Link>
@@ -57,25 +59,32 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
         {/* Desktop search — always visible */}
         <form
           onSubmit={handleSearch}
-          className="hidden sm:flex flex-1 max-w-[640px] mx-auto items-center"
+          className={`hidden sm:flex mx-auto items-center transition-all duration-1000 ease-in-out ${
+            searchFocused ? 'w-[780px]' : 'w-[540px]'
+          } max-w-[calc(100vw-280px)] min-w-0`}
         >
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search
               size={18}
               strokeWidth={1.5}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888] pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888] pointer-events-none z-10"
             />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              onKeyDown={handleKeyDown}
               placeholder="搜索电影..."
-              className="w-full h-10 rounded-full bg-[#121212] border border-[#303030] focus:border-[#6366F1] focus:outline-none px-4 pl-10 text-white placeholder:text-[#888] text-sm transition-colors"
+              className="w-full h-10 rounded-full bg-[#121212] border border-[#303030] focus:border-[#6366F1] focus:outline-none px-4 pl-10 text-white placeholder:text-[#888] text-sm transition-all duration-1000 ease-in-out"
             />
           </div>
           <button
             type="button"
-            className="w-10 h-10 rounded-full bg-[#272727] hover:bg-[#3F3F3F] ml-2 flex items-center justify-center transition-colors shrink-0"
+            className={`w-10 h-10 rounded-full bg-[#272727] hover:bg-[#3F3F3F] ml-2 flex items-center justify-center shrink-0 transition-all duration-1000 ease-in-out ${
+              searchFocused ? 'rotate-[360deg]' : 'rotate-0'
+            }`}
             aria-label="语音搜索"
           >
             <Mic size={20} strokeWidth={1.5} className="text-white" />

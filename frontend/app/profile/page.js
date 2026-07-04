@@ -116,7 +116,11 @@ export default function ProfilePage() {
         <main className={`flex-1 min-h-[calc(100vh-56px)] transition-[margin] duration-200 ml-0 ${sidebarOpen ? 'sm:ml-60' : 'sm:ml-16'}`}>
           <div className="max-w-[800px] mx-auto px-6 py-8">
             {/* Back link */}
-            <Link href="/" className="text-sm text-[#AAAAAA] hover:text-white transition-colors">
+            <Link
+              href="/"
+              title="返回首页"
+              className="inline-flex items-center gap-1.5 text-sm text-[#AAAAAA] hover:text-white transition-all duration-200 px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.25)] hover:bg-[#272727]"
+            >
               ← 返回首页
             </Link>
 

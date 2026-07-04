@@ -195,7 +195,8 @@ export default function MovieDetailPage() {
                 {/* Back button */}
                 <Link
                   href="/movies"
-                  className="inline-flex items-center gap-1 text-sm text-[#AAAAAA] hover:text-white transition-colors mb-4"
+                  title="返回电影列表"
+                  className="inline-flex items-center gap-1.5 text-sm text-[#AAAAAA] hover:text-white transition-all duration-200 mb-4 px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.25)] hover:bg-[#272727]"
                 >
                   <ArrowLeft size={16} strokeWidth={1.5} />
                   返回

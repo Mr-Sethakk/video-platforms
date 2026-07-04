@@ -1,5 +1,5 @@
-// In-memory watchlist: Map<userId, Set<movieId>>
-const watchlists = new Map();
+import movies from '@/app/api/_data/movies';
+import watchlists from '@/app/api/_data/watchlist';
 
 function getUser(request) {
   const authHeader = request.headers.get("Authorization");
@@ -25,12 +25,17 @@ export async function GET(request) {
   }
 
   const userWatchlist = watchlists.get(user.userId) || new Set();
+  // 将 ID 集合映射为完整电影对象
+  const movieMap = new Map(movies.map((m) => [m.id, m]));
+  const fullMovies = Array.from(userWatchlist)
+    .map((id) => movieMap.get(id))
+    .filter(Boolean);
 
   return Response.json({
     success: true,
     code: 200,
     message: "操作成功",
-    data: Array.from(userWatchlist),
+    data: fullMovies,
   });
 }
 

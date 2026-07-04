@@ -228,7 +228,11 @@ export default function MembershipPage() {
         <main className={`flex-1 min-h-[calc(100vh-56px)] transition-[margin] duration-200 ml-0 ${sidebarOpen ? 'sm:ml-60' : 'sm:ml-16'}`}>
           <div className="max-w-[1100px] mx-auto px-6 py-8">
             {/* Back */}
-            <Link href="/profile" className="text-sm text-[#AAAAAA] hover:text-white transition-colors">
+            <Link
+              href="/profile"
+              title="返回个人中心"
+              className="inline-flex items-center gap-1.5 text-sm text-[#AAAAAA] hover:text-white transition-all duration-200 px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.25)] hover:bg-[#272727]"
+            >
               ← 返回个人中心
             </Link>
 

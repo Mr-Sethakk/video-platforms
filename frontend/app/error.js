@@ -34,9 +34,10 @@ export default function Error({ error, reset }) {
         {/* Home link */}
         <a
           href="/"
-          className="block mt-4 text-sm text-[#AAAAAA] hover:text-white transition-colors underline underline-offset-2"
+          title="返回首页"
+          className="inline-flex items-center gap-1.5 text-sm text-[#AAAAAA] hover:text-white transition-all duration-200 px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.25)] hover:bg-[#272727]"
         >
-          返回首页
+          ← 返回首页
         </a>
       </div>
     </div>
