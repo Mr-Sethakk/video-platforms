@@ -8,6 +8,13 @@ set "PATH=%JAVA_HOME%\bin;%MVN_HOME%\mvn\bin;%PATH%"
 
 cd /d "%~dp0"
 
+:: Load environment variables from .env file
+if exist "%~dp0backend\.env" (
+    for /f "usebackq tokens=1,2 delims==" %%a in ("%~dp0backend\.env") do (
+        set "%%a=%%b"
+    )
+)
+
 echo ================================================
 echo   Movie Platform - Start All Services
 echo ================================================
