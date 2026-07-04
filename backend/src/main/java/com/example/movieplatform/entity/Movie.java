@@ -1,5 +1,6 @@
 package com.example.movieplatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,15 @@ public class Movie {
 
     @Column(name = "poster_url", length = 500)
     private String posterUrl;
+
+    @JsonIgnore
+    @Column(name = "poster_data", columnDefinition = "LONGBLOB")
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private byte[] posterData;
+
+    @Column(name = "poster_content_type", length = 50)
+    private String posterContentType;
 
     private Integer duration;
 

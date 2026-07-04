@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posters/**").permitAll()
                         .requestMatchers("/api/ai/chat/**").permitAll()
                         .requestMatchers("/api/watchlist/**").authenticated()
                         .requestMatchers("/api/videos/upload").authenticated()
