@@ -1,0 +1,39 @@
+# ===== Node.js =====
+node_modules/
+npm-debug.log*
+.next/
+
+# ===== Java / Maven =====
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== OS =====
+Thumbs.db
+desktop.ini
+
+# ===== Environment =====
+.env.local
+.env.production.local
+.env.development.local
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Teaching materials (too large for GitHub) =====
+暑假实习/
+
+# ===== Uploads (generated at runtime) =====
+uploads/

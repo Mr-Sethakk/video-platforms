@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: movie-platform
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/movie_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+  sql:
+    init:
+      mode: never
+
+# MyBatis-Plus 已移除，使用 JPA
+
+jwt:
+  secret: YTJkM2Y0ZTVmNmE3YjhkOWMwZDBhMWIyYzNkNGU1ZjZhN2I4YzlkMGEwYjFjMmQzZTRmNWY2YTdiOGM5ZDBlMWYyZjNmNGY1ZjZhN2I4YzlkMGEwYjFjMmQzZTRmNWY2YTdiOGM5ZDBlMQ==
+  expiration: 86400000
+
+dashscope:
+  api-key: ${DASHSCOPE_API_KEY:your-dashscope-api-key-here}
+
+cors:
+  allowed-origins: http://localhost:3000
