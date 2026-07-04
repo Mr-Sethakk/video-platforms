@@ -12,7 +12,6 @@ import Empty from '@/components/ui/Empty'
 import { useAuth } from '@/hooks/useAuth'
 import { useWatchlist } from '@/hooks/useWatchlist'
 import { apiFetch } from '@/lib/api'
-import { GENRES } from '@/lib/constants'
 
 export default function MovieDetailPage() {
   const { id } = useParams()
@@ -92,7 +91,7 @@ export default function MovieDetailPage() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={closeSidebar}
-            genres={GENRES}
+           
             watchlistCount={watchlistCount}
             isAdmin={isAdmin}
           />
@@ -119,7 +118,7 @@ export default function MovieDetailPage() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={closeSidebar}
-            genres={GENRES}
+           
             watchlistCount={watchlistCount}
             isAdmin={isAdmin}
           />
@@ -178,7 +177,7 @@ export default function MovieDetailPage() {
         <Sidebar
           isOpen={sidebarOpen}
           onClose={closeSidebar}
-          genres={GENRES}
+         
           watchlistCount={watchlistCount}
           isAdmin={isAdmin}
         />

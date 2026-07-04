@@ -60,7 +60,7 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
         <form
           onSubmit={handleSearch}
           className={`hidden sm:flex mx-auto items-center transition-all duration-1000 ease-in-out ${
-            searchFocused ? 'w-[780px]' : 'w-[540px]'
+            searchFocused ? 'w-[560px]' : 'w-[400px]'
           } max-w-[calc(100vw-280px)] min-w-0`}
         >
           <div className="relative flex-1 min-w-0">

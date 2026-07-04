@@ -8,7 +8,6 @@ import MovieCard from '@/components/movie/MovieCard'
 import Empty from '@/components/ui/Empty'
 import { useAuth } from '@/hooks/useAuth'
 import { useWatchlist } from '@/hooks/useWatchlist'
-import { GENRES } from '@/lib/constants'
 import { Heart } from 'lucide-react'
 
 export default function WatchlistPage() {
@@ -51,7 +50,7 @@ export default function WatchlistPage() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={closeSidebar}
-            genres={GENRES}
+           
             watchlistCount={0}
             isAdmin={isAdmin}
           />
@@ -87,7 +86,7 @@ export default function WatchlistPage() {
         <Sidebar
           isOpen={sidebarOpen}
           onClose={closeSidebar}
-          genres={GENRES}
+         
           watchlistCount={count}
           isAdmin={isAdmin}
         />

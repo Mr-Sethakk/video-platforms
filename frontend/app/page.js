@@ -50,7 +50,7 @@ export default function HomePage() {
         <Sidebar
           isOpen={sidebarOpen}
           onClose={closeSidebar}
-          genres={GENRES}
+         
           watchlistCount={watchlistCount}
           isAdmin={isAdmin}
         />

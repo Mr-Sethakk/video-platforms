@@ -7,7 +7,6 @@ import { User, Mail, Shield, Clock, LogOut, Edit3, Save, X, Crown, ArrowRight, S
 import TopBar from '@/components/layout/TopBar';
 import Sidebar from '@/components/layout/Sidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { GENRES } from '@/lib/constants';
 
 function VipStatusCard({ vipLevel, vipInfo }) {
   if (!vipLevel) {
@@ -111,7 +110,7 @@ export default function ProfilePage() {
       <TopBar onToggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />
 
       <div className="flex pt-14">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} genres={GENRES} isAdmin={isAdmin} />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isAdmin={isAdmin} />
 
         <main className={`flex-1 min-h-[calc(100vh-56px)] transition-[margin] duration-200 ml-0 ${sidebarOpen ? 'sm:ml-60' : 'sm:ml-16'}`}>
           <div className="max-w-[800px] mx-auto px-6 py-8">

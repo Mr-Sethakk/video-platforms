@@ -9,7 +9,6 @@ import DashboardChart from '@/components/admin/DashboardChart'
 import Empty from '@/components/ui/Empty'
 import { useAuth } from '@/hooks/useAuth'
 import { useWatchlist } from '@/hooks/useWatchlist'
-import { GENRES } from '@/lib/constants'
 
 // Sample chart data
 const uploadTrendData = [
@@ -49,7 +48,7 @@ export default function AdminDashboardPage() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={closeSidebar}
-            genres={GENRES}
+           
             watchlistCount={watchlistCount}
             isAdmin={isAdmin}
           />
@@ -76,7 +75,7 @@ export default function AdminDashboardPage() {
         <Sidebar
           isOpen={sidebarOpen}
           onClose={closeSidebar}
-          genres={GENRES}
+         
           watchlistCount={watchlistCount}
           isAdmin={isAdmin}
         />

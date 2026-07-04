@@ -9,7 +9,6 @@ import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/hooks/useAuth'
 import { useWatchlist } from '@/hooks/useWatchlist'
 import { apiFetch } from '@/lib/api'
-import { GENRES } from '@/lib/constants'
 
 export default function AdminReviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -73,7 +72,7 @@ export default function AdminReviewPage() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={closeSidebar}
-            genres={GENRES}
+           
             watchlistCount={watchlistCount}
             isAdmin={isAdmin}
           />
@@ -100,7 +99,7 @@ export default function AdminReviewPage() {
         <Sidebar
           isOpen={sidebarOpen}
           onClose={closeSidebar}
-          genres={GENRES}
+         
           watchlistCount={watchlistCount}
           isAdmin={isAdmin}
         />
