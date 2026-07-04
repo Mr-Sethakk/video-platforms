@@ -3,14 +3,73 @@
 import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Shield, Clock, LogOut, Edit3, Save, X } from 'lucide-react';
+import { User, Mail, Shield, Clock, LogOut, Edit3, Save, X, Crown, ArrowRight, Sparkles } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import Sidebar from '@/components/layout/Sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { GENRES } from '@/lib/constants';
 
+function VipStatusCard({ vipLevel, vipInfo }) {
+  if (!vipLevel) {
+    // Free user — show upgrade CTA
+    return (
+      <Link href="/membership">
+        <div className="bg-[#212121] rounded-2xl border border-[rgba(255,255,255,0.06)] p-5 mb-6 hover:border-[#F59E0B]/30 transition-all group cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#717171]/15 flex items-center justify-center shrink-0">
+              <Crown size={22} strokeWidth={1.5} className="text-[#717171] group-hover:text-[#F59E0B] transition-colors" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-[#AAAAAA]">当前会员等级</p>
+              <p className="text-white font-medium mt-0.5">免费用户</p>
+              <p className="text-xs text-[#717171] mt-1">升级会员解锁更多权益</p>
+            </div>
+            <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-sm font-medium group-hover:bg-[#F59E0B]/20 transition-colors shrink-0">
+              <Sparkles size={14} strokeWidth={1.5} />
+              升级会员
+              <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // VIP user
+  return (
+    <Link href="/membership">
+      <div className="mb-6 rounded-2xl border p-5 hover:brightness-110 transition-all group cursor-pointer"
+        style={{
+          backgroundColor: `${vipInfo.color}08`,
+          borderColor: `${vipInfo.color}25`,
+          backgroundImage: `linear-gradient(135deg, ${vipInfo.color}10, transparent 60%)`,
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: `${vipInfo.color}20` }}
+          >
+            <Crown size={22} strokeWidth={1.5} style={{ color: vipInfo.color }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-[#AAAAAA]">当前会员等级</p>
+            <p className="text-white font-bold text-lg mt-0.5" style={{ color: vipInfo.color }}>
+              {vipInfo.label}
+            </p>
+            <p className="text-xs text-[#AAAAAA] mt-1">点击查看或变更套餐</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#303030] text-white text-sm font-medium group-hover:bg-[#3F3F3F] transition-colors shrink-0">
+            管理
+            <ArrowRight size={14} strokeWidth={1.5} className="group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function ProfilePage() {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, vipLevel, vipInfo, logout } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -27,7 +86,6 @@ export default function ProfilePage() {
 
   const handleSave = useCallback(async () => {
     setSaving(true);
-    // Simulate save — in production would call API
     await new Promise(r => setTimeout(r, 1000));
     setSaving(false);
     setEditing(false);
@@ -64,10 +122,9 @@ export default function ProfilePage() {
 
             <h1 className="text-2xl font-bold mt-4 mb-8">个人中心</h1>
 
-            {/* ===== Avatar + basic info card ===== */}
+            {/* ===== Avatar + basic info ===== */}
             <div className="bg-[#212121] rounded-2xl border border-[rgba(255,255,255,0.06)] p-6 mb-6">
               <div className="flex items-center gap-5">
-                {/* Avatar */}
                 <div className="w-20 h-20 rounded-full bg-[#6366F1] flex items-center justify-center shrink-0">
                   <User size={36} strokeWidth={1.5} className="text-white" />
                 </div>
@@ -89,7 +146,22 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <>
-                      <h2 className="text-xl font-bold text-white">{user.username}</h2>
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-xl font-bold text-white">{user.username}</h2>
+                        {vipLevel && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
+                            style={{
+                              backgroundColor: `${vipInfo.color}20`,
+                              color: vipInfo.color,
+                              border: `1px solid ${vipInfo.color}30`,
+                            }}
+                          >
+                            <Crown size={12} strokeWidth={1.5} />
+                            {vipInfo.label}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-[#AAAAAA] mt-1 flex items-center gap-1">
                         <Mail size={14} strokeWidth={1.5} /> {user.email || '未设置邮箱'}
                       </p>
@@ -133,6 +205,9 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* ===== VIP Status Card ===== */}
+            <VipStatusCard vipLevel={vipLevel} vipInfo={vipInfo} />
+
             {/* ===== Info grid ===== */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-[#212121] rounded-2xl border border-[rgba(255,255,255,0.06)] p-5 flex items-start gap-4">
@@ -170,7 +245,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { href: '/watchlist', label: '📋 我的片单' },
-                  { href: '/movies', label: '🎬 浏览电影' },
+                  { href: '/membership', label: `${vipLevel ? '👑' : '💎'} ${vipLevel ? '管理会员' : '升级会员'}` },
                   { href: '/movies?sort=rating', label: '⭐ 高分排行' },
                   { href: '/movies?sort=year', label: '🆕 最新上映' },
                 ].map(item => (
