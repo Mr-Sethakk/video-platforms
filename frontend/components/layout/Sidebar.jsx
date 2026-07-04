@@ -3,21 +3,7 @@ import { useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-
-const GENRE_EMOJI_MAP = {
-  '剧情': '🎭',
-  '科幻': '🚀',
-  '爱情': '❤️',
-  '动作': '💥',
-  '喜剧': '😂',
-  '恐怖': '👻',
-  '动画': '✨',
-  '悬疑': '🔍',
-  '纪录片': '📹',
-  '奇幻': '🧙',
-  '战争': '⚔️',
-  '犯罪': '🕵️',
-};
+import { GENRE_ICONS } from '@/lib/constants';
 
 const NAV_BASE_CLASSES =
   'flex items-center gap-6 h-10 px-3 rounded-xl text-sm text-white transition-colors hover:bg-[#272727]';
@@ -119,7 +105,7 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
 
         {/* ===== Section 2: Genres ===== */}
         {genres.map((genre) => {
-          const emoji = GENRE_EMOJI_MAP[genre] || '🎬';
+          const emoji = GENRE_ICONS[genre] || '🎬';
           const href = `/movies?genre=${encodeURIComponent(genre)}`;
           return (
             <NavItem
@@ -244,7 +230,7 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
               <Divider />
 
               {genres.map((genre) => {
-                const emoji = GENRE_EMOJI_MAP[genre] || '🎬';
+                const emoji = GENRE_ICONS[genre] || '🎬';
                 const href = `/movies?genre=${encodeURIComponent(genre)}`;
                 return (
                   <NavItem
