@@ -2,6 +2,7 @@ import '@/styles/globals.css'
 import { AuthProvider } from '@/hooks/useAuth'
 import { ToastProvider } from '@/components/ui/Toast'
 import AIChatFloat from '@/components/layout/AIChatFloat'
+import ScrollToTop from '@/components/layout/ScrollToTop'
 
 export const metadata = {
   title: '🎬 电影APP',
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ToastProvider>
             {children}
+            <ScrollToTop />
             <AIChatFloat />
           </ToastProvider>
         </AuthProvider>
