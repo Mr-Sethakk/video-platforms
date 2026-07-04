@@ -58,8 +58,10 @@ jwt:
   secret: YTJkM2Y0ZTVmNmE3YjhkOWMwZDBhMWIyYzNkNGU1ZjZhN2I4YzlkMGEwYjFjMmQzZTRmNWY2YTdiOGM5ZDBlMWYyZjNmNGY1ZjZhN2I4YzlkMGEwYjFjMmQzZTRmNWY2YTdiOGM5ZDBlMQ==
   expiration: 86400000
 
-dashscope:
-  api-key: ${DASHSCOPE_API_KEY:your-dashscope-api-key-here}
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY:}
+  base-url: https://api.deepseek.com
+  model: deepseek-chat
 
 cors:
   allowed-origins: http://localhost:3000

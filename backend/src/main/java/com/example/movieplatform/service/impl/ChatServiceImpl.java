@@ -1,111 +1,180 @@
 package com.example.movieplatform.service.impl;
 
 import com.example.movieplatform.dto.request.ChatRequest;
+import com.example.movieplatform.entity.Movie;
+import com.example.movieplatform.repository.MovieRepository;
 import com.example.movieplatform.service.ChatService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
 public class ChatServiceImpl implements ChatService {
 
-    private static final String SYSTEM_PROMPT = """
-            你是"小影"，一个专业的电影推荐助手。你的职责是：
-            1. 根据用户的偏好和需求推荐合适的电影
-            2. 提供电影的相关信息，包括剧情简介、评分、演职员等
-            3. 回答用户关于电影的各类问题
-            4. 与用户进行友好的聊天互动
+    private final MovieRepository movieRepository;
+    private final WebClient.Builder webClientBuilder;
+    private final ObjectMapper objectMapper;
 
-            请用中文回复，语气亲切友好，像个电影爱好者朋友一样。
-            """;
+    @Value("${deepseek.api-key}")
+    private String apiKey;
 
-    private static final Map<String, String> MOVIE_RECOMMENDATIONS = new HashMap<>();
+    @Value("${deepseek.base-url}")
+    private String baseUrl;
 
-    static {
-        MOVIE_RECOMMENDATIONS.put("科幻", "推荐您观看《星际穿越》——诺兰导演的科幻神作，豆瓣评分9.4分！讲述人类穿越虫洞寻找新家园的故事，视觉效果震撼，情感深刻。");
-        MOVIE_RECOMMENDATIONS.put("动画", "推荐您观看《千与千寻》——宫崎骏的经典之作，豆瓣评分9.4分！奇幻的异世界冒险，治愈又充满想象力。");
-        MOVIE_RECOMMENDATIONS.put("动作", "推荐您观看《盗梦空间》——又一部诺兰神作，豆瓣评分9.3分！多层梦境的设定让人脑洞大开，动作场面精彩绝伦。");
-        MOVIE_RECOMMENDATIONS.put("爱情", "推荐您观看《泰坦尼克号》——永恒的爱情经典，豆瓣评分9.4分！Jack和Rose的爱情感动了全世界。");
-        MOVIE_RECOMMENDATIONS.put("喜剧", "推荐您观看《三傻大闹宝莱坞》——印度神片，豆瓣评分9.2分！笑中带泪的教育反思，值得一看再看。");
-        MOVIE_RECOMMENDATIONS.put("悬疑", "推荐您观看《看不见的客人》——西班牙悬疑佳作，豆瓣评分8.8分！层层反转，不到最后一刻猜不到真相。");
-        MOVIE_RECOMMENDATIONS.put("恐怖", "推荐您观看《闪灵》——库布里克经典恐怖片，豆瓣评分8.3分！心理恐怖的巅峰之作，氛围绝佳。");
-        MOVIE_RECOMMENDATIONS.put("剧情", "推荐您观看《肖申克的救赎》——影史排名第一的神作，豆瓣评分9.7分！关于希望与自由的永恒主题。");
+    @Value("${deepseek.model}")
+    private String model;
+
+    private String movieContext = "";
+
+    public ChatServiceImpl(MovieRepository movieRepository,
+                           WebClient.Builder webClientBuilder,
+                           ObjectMapper objectMapper) {
+        this.movieRepository = movieRepository;
+        this.webClientBuilder = webClientBuilder;
+        this.objectMapper = objectMapper;
+    }
+
+    @PostConstruct
+    public void buildMovieContext() {
+        try {
+            var page = movieRepository.findAllOrderByRatingDesc(PageRequest.of(0, 30));
+            StringBuilder sb = new StringBuilder();
+            sb.append("以下是平台目前评分最高的部分电影：\n\n");
+            for (Movie m : page.getContent()) {
+                sb.append(String.format("- 《%s》(%d) | ⭐%.1f | %s | 导演：%s | %d分钟 | %s\n",
+                        m.getTitle(),
+                        m.getYear() != null ? m.getYear() : 0,
+                        m.getRating() != null ? m.getRating() : 0,
+                        m.getGenre() != null ? m.getGenre() : "",
+                        m.getDirector() != null ? m.getDirector() : "未知",
+                        m.getDuration() != null ? m.getDuration() : 0,
+                        m.getCountry() != null ? m.getCountry() : ""));
+            }
+            movieContext = sb.toString();
+            log.info("电影知识库加载完成：{} 部电影", page.getContent().size());
+        } catch (Exception e) {
+            log.warn("加载电影知识库失败：{}", e.getMessage());
+            movieContext = "";
+        }
+    }
+
+    private String buildSystemPrompt() {
+        return """
+                你是"小影"，一个热情专业的中文电影推荐助手，工作在"电影APP"平台。
+
+                你的能力：
+                1. 根据用户偏好推荐电影（结合评分、类型、年代）
+                2. 介绍电影的详细信息（剧情、导演、演员、获奖等）
+                3. 回答电影相关的知识和趣闻
+                4. 与用户自然闲聊
+
+                回答要求：
+                - 推荐时优先使用平台内的电影，每次推荐不超过 3 部，给出具体推荐理由
+                - 使用友好的语气，适当使用 emoji
+                - 用户情绪低落时给予安慰和鼓励
+                - 回复简洁有温度，不超过 300 字
+
+                """ + movieContext;
     }
 
     @Override
     public Flux<String> chat(ChatRequest request) {
-        String message = request.getMessage();
-        log.info("收到聊天消息: {}", message);
-
-        String response = generateResponse(message);
-
-        // Simulate SSE streaming with character-by-character output
-        return Flux.fromArray(response.split(""))
-                .delayElements(Duration.ofMillis(30))
-                .startWith("data: ")
-                .concatWithValues("\n\n[DONE]");
+        return doChat(request, true);
     }
 
     @Override
     public Flux<String> chatStream(ChatRequest request) {
-        String message = request.getMessage();
-        log.info("收到流式聊天消息: {}", message);
-
-        String response = generateResponse(message);
-
-        return Flux.fromArray(response.split(""))
-                .delayElements(Duration.ofMillis(25));
+        return doChat(request, false);
     }
 
-    private String generateResponse(String message) {
-        if (message == null || message.trim().isEmpty()) {
-            return "您好！我是小影，您的电影推荐助手。请告诉我您想找什么类型的电影，或者有什么电影相关的问题，我很乐意帮助您！";
+    private Flux<String> doChat(ChatRequest request, boolean sseFormat) {
+        if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
+            String welcome = "你好呀！我是小影 🎬 想找什么电影？";
+            return Flux.just(sseFormat ? "data: " + welcome + "\n\n" : welcome);
         }
 
-        String lowerMessage = message.toLowerCase();
-
-        // Check for greeting
-        if (lowerMessage.contains("你好") || lowerMessage.contains("hello") || lowerMessage.contains("hi")) {
-            return "你好呀！我是小影，很高兴认识你！告诉我你喜欢的电影类型，或者最近在找什么片子，我帮你推荐~";
-        }
-
-        // Check for genre keywords
-        for (Map.Entry<String, String> entry : MOVIE_RECOMMENDATIONS.entrySet()) {
-            if (lowerMessage.contains(entry.getKey())) {
-                return entry.getValue();
+        // Build messages
+        List<Map<String, String>> msgs = new ArrayList<>();
+        msgs.add(Map.of("role", "system", "content", buildSystemPrompt()));
+        if (request.getHistory() != null) {
+            int max = Math.min(request.getHistory().size(), 20);
+            for (int i = request.getHistory().size() - max; i < request.getHistory().size(); i++) {
+                var h = request.getHistory().get(i);
+                if (h.getRole() != null && h.getContent() != null) {
+                    msgs.add(Map.of("role", h.getRole(), "content", h.getContent()));
+                }
             }
         }
+        msgs.add(Map.of("role", "user", "content", request.getMessage()));
 
-        // Check for common movie-related questions
-        if (lowerMessage.contains("推荐") || lowerMessage.contains("好看") || lowerMessage.contains("有什么")) {
-            return "让我想想...根据大众口碑，以下电影值得一看：\n"
-                    + "1. 《肖申克的救赎》- 剧情/希望 9.7分\n"
-                    + "2. 《星际穿越》- 科幻/冒险 9.4分\n"
-                    + "3. 《千与千寻》- 动画/奇幻 9.4分\n"
-                    + "4. 《盗梦空间》- 科幻/动作 9.3分\n"
-                    + "5. 《三傻大闹宝莱坞》- 喜剧/剧情 9.2分\n\n"
-                    + "你对哪个类型更感兴趣呢？";
+        Map<String, Object> body = Map.of(
+                "model", model, "messages", msgs,
+                "stream", false, // non-streaming for reliability
+                "temperature", 0.7, "max_tokens", 800
+        );
+
+        log.info("AI 请求：{}", request.getMessage().substring(0, Math.min(50, request.getMessage().length())));
+
+        WebClient client = webClientBuilder
+                .baseUrl(baseUrl)
+                .defaultHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        Mono<String> responseMono = client.post()
+                .uri("/v1/chat/completions")
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(resp -> {
+                    try {
+                        List<Map<String, Object>> choices = (List<Map<String, Object>>) resp.get("choices");
+                        if (choices != null && !choices.isEmpty()) {
+                            Map<String, Object> msg = (Map<String, Object>) choices.get(0).get("message");
+                            if (msg != null) {
+                                return (String) msg.get("content");
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("解析 AI 响应失败：{}", e.getMessage());
+                    }
+                    return "抱歉，AI 出了点小问题，请稍后再试 😅";
+                })
+                .doOnError(e -> log.error("AI 调用失败：{}", e.getMessage()))
+                .onErrorReturn("抱歉，AI 暂时不可用，请稍后再试 😅");
+
+        // Convert Mono to Flux, then simulate per-character streaming for SSE feel
+        Flux<String> charFlux = responseMono.flatMapMany(fullText -> {
+            if (fullText == null || fullText.isEmpty()) {
+                return Flux.just("AI 没有返回内容，请换个问题试试 🙂");
+            }
+            // Split into chunks of ~3 characters for streaming feel
+            List<String> chunks = new ArrayList<>();
+            for (int i = 0; i < fullText.length(); i += 3) {
+                int end = Math.min(i + 3, fullText.length());
+                chunks.add(fullText.substring(i, end));
+            }
+            return Flux.fromIterable(chunks).delayElements(Duration.ofMillis(40));
+        });
+
+        if (sseFormat) {
+            return charFlux
+                    .map(chunk -> chunk.replaceAll("^\\s*data:\\s*", ""))  // strip any stray "data:" prefix
+                    .filter(chunk -> !chunk.trim().isEmpty())
+                    .map(chunk -> "data: " + chunk + "\n\n")
+                    .concatWith(Flux.just("data: [DONE]\n\n"));
         }
-
-        if (lowerMessage.contains("评分") || lowerMessage.contains("排行")) {
-            return "目前本平台评分最高的几部电影是：\n"
-                    + "1. 《肖申克的救赎》- 9.7分\n"
-                    + "2. 《星际穿越》- 9.4分\n"
-                    + "3. 《千与千寻》- 9.4分\n"
-                    + "4. 《泰坦尼克号》- 9.4分\n"
-                    + "5. 《盗梦空间》- 9.3分";
-        }
-
-        // Default response
-        return "感谢您的提问！作为电影推荐助手，我可以帮您：\n"
-                + "- 根据类型推荐电影（如科幻、动画、动作等）\n"
-                + "- 查看高评分电影排行\n"
-                + "- 了解特定电影的信息\n\n"
-                + "请告诉我您感兴趣的电影类型，或者想看哪方面的推荐吧！";
+        return charFlux;
     }
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Send, User as UserIcon } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import Sidebar from '@/components/layout/Sidebar'
 import MovieCard from '@/components/movie/MovieCard'
@@ -12,6 +12,7 @@ import Empty from '@/components/ui/Empty'
 import { useAuth } from '@/hooks/useAuth'
 import { useWatchlist } from '@/hooks/useWatchlist'
 import { apiFetch } from '@/lib/api'
+import { API_BASE } from '@/lib/constants'
 
 export default function MovieDetailPage() {
   const { id } = useParams()
@@ -22,7 +23,13 @@ export default function MovieDetailPage() {
   const [recommendations, setRecommendations] = useState([])
   const [recsLoading, setRecsLoading] = useState(false)
 
-  const { isAdmin } = useAuth()
+  // Comment state
+  const [comments, setComments] = useState([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
+
+  const { isAdmin, isAuthenticated, user } = useAuth()
   const {
     count: watchlistCount,
     addToWatchlist,
@@ -60,7 +67,8 @@ export default function MovieDetailPage() {
   useEffect(() => {
     fetchMovie()
     fetchRecommendations()
-  }, [fetchMovie, fetchRecommendations])
+    fetchComments()
+  }, [fetchMovie, fetchRecommendations, fetchComments])
 
   const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), [])
   const closeSidebar = useCallback(() => setSidebarOpen(false), [])
@@ -81,6 +89,35 @@ export default function MovieDetailPage() {
       // Silently fail
     }
   }, [])
+
+  const fetchComments = useCallback(async () => {
+    setCommentsLoading(true)
+    try {
+      const data = await apiFetch(`/comments?movieId=${id}&pageSize=50`)
+      setComments(data.records || [])
+    } catch {
+      // Comments may fail if endpoint not ready
+    } finally {
+      setCommentsLoading(false)
+    }
+  }, [id])
+
+  const handleSubmitComment = useCallback(async () => {
+    if (!commentText.trim() || commentSubmitting) return
+    setCommentSubmitting(true)
+    try {
+      await apiFetch('/comments', {
+        method: 'POST',
+        body: JSON.stringify({ movieId: Number(id), content: commentText.trim() }),
+      })
+      setCommentText('')
+      fetchComments()
+    } catch (e) {
+      // Error handled silently
+    } finally {
+      setCommentSubmitting(false)
+    }
+  }, [commentText, commentSubmitting, id, fetchComments])
 
   // ========== Loading state ==========
   if (loading) {
@@ -203,17 +240,12 @@ export default function MovieDetailPage() {
 
                 {/* Poster */}
                 <div className="rounded-xl overflow-hidden bg-[#0F0F0F] max-h-[500px]">
-                  {movie.posterUrl ? (
-                    <img
-                      src={movie.posterUrl}
-                      alt={movie.title}
-                      className="w-full max-h-[500px] object-contain bg-[#0F0F0F]"
-                    />
-                  ) : (
-                    <div className="w-full h-[300px] bg-gradient-to-br from-[#6366F1]/30 to-[#6366F1]/10 flex items-center justify-center">
-                      <span className="text-[#AAAAAA] text-sm">暂无海报</span>
-                    </div>
-                  )}
+                  <img
+                    src={`${API_BASE}/posters/${movie.id}`}
+                    alt={movie.title}
+                    className="w-full max-h-[500px] object-contain bg-[#0F0F0F]"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
                 </div>
 
                 {/* Title */}
@@ -272,10 +304,85 @@ export default function MovieDetailPage() {
                 {/* Divider */}
                 <div className="border-t border-[#303030] my-4" />
 
-                {/* Comments placeholder */}
+                {/* Comments section */}
                 <section>
-                  <h2 className="text-base font-medium mb-3">💬 评论</h2>
-                  <Empty title="暂无评论" />
+                  <h2 className="text-base font-medium mb-4">💬 评论 ({comments.length})</h2>
+
+                  {/* Comment form — only for logged-in users */}
+                  {isAuthenticated ? (
+                    <div className="flex gap-3 mb-6">
+                      <div className="w-8 h-8 rounded-full bg-[#6366F1] flex items-center justify-center shrink-0 mt-1">
+                        <UserIcon size={14} strokeWidth={2} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <textarea
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder="写下你的评论..."
+                          rows={3}
+                          className="w-full bg-[#0F0F0F] border border-[#303030] focus:border-[#6366F1] focus:outline-none rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#717171] resize-none"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            onClick={handleSubmitComment}
+                            disabled={!commentText.trim() || commentSubmitting}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#6366F1] text-white text-sm font-medium hover:bg-[#4F46E5] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {commentSubmitting ? (
+                              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Send size={14} strokeWidth={2} />
+                            )}
+                            发表
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-[#212121] rounded-xl border border-[#303030] p-4 text-center mb-6">
+                      <p className="text-sm text-[#AAAAAA]">
+                        请先
+                        <Link href={`/login?redirect=/movies/${id}`} className="text-[#6366F1] hover:underline mx-1">
+                          登录
+                        </Link>
+                        后再评论
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Comment list */}
+                  {commentsLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="bg-[#212121] rounded-xl p-4 animate-pulse">
+                          <div className="h-3 w-20 bg-[#303030] rounded mb-2" />
+                          <div className="h-3 w-full bg-[#303030] rounded mb-1" />
+                          <div className="h-3 w-3/4 bg-[#303030] rounded" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : comments.length > 0 ? (
+                    <div className="space-y-3">
+                      {comments.map((c, i) => (
+                        <div key={c.id || i} className="bg-[#212121] rounded-xl border border-[rgba(255,255,255,0.06)] p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 rounded-full bg-[#6366F1]/30 flex items-center justify-center">
+                              <UserIcon size={12} strokeWidth={2} className="text-[#6366F1]" />
+                            </div>
+                            <span className="text-xs text-[#AAAAAA] font-medium">
+                              {c.username || '用户'}
+                            </span>
+                            <span className="text-xs text-[#717171]">
+                              {c.createdAt ? new Date(c.createdAt).toLocaleDateString('zh-CN') : ''}
+                            </span>
+                          </div>
+                          <p className="text-sm text-white leading-relaxed">{c.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-[#717171] text-center py-4">暂无评论，来说点什么吧</p>
+                  )}
                 </section>
 
                 {/* Mobile recommendations (horizontal scroll row) */}
