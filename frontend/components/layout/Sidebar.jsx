@@ -126,6 +126,14 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
         {isAuthenticated && (
           <>
             <NavItem
+              href="/profile"
+              icon="👤"
+              label="个人中心"
+              collapsed={!isOpen}
+              active={isActive('/profile')}
+              onClick={handleNavClick}
+            />
+            <NavItem
               href="/watchlist"
               icon="📋"
               label="我的片单"
@@ -135,11 +143,11 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
               onClick={handleNavClick}
             />
             <NavItem
-              href="/favorites"
+              href="/movies?sort=rating"
               icon="⭐"
-              label="我的收藏"
+              label="高分推荐"
               collapsed={!isOpen}
-              active={isActive('/favorites')}
+              active={isActive('/movies?sort=rating')}
               onClick={handleNavClick}
             />
             <NavItem
@@ -249,8 +257,9 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
 
               {isAuthenticated && (
                 <>
+                  <NavItem href="/profile" icon="👤" label="个人中心" collapsed={false} active={isActive('/profile')} onClick={handleNavClick} />
                   <NavItem href="/watchlist" icon="📋" label="我的片单" collapsed={false} active={isActive('/watchlist')} badge={watchlistCount} onClick={handleNavClick} />
-                  <NavItem href="/favorites" icon="⭐" label="我的收藏" collapsed={false} active={isActive('/favorites')} onClick={handleNavClick} />
+                  <NavItem href="/movies?sort=rating" icon="⭐" label="高分推荐" collapsed={false} active={isActive('/movies?sort=rating')} onClick={handleNavClick} />
                   <NavItem href="/upload" icon="📤" label="上传视频" collapsed={false} active={isActive('/upload')} onClick={handleNavClick} />
                   <Divider />
                 </>
