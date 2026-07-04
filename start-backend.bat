@@ -7,6 +7,11 @@ set "PATH=%JAVA_HOME%\bin;%MVN_HOME%\mvn\bin;%PATH%"
 
 cd /d "%~dp0"
 
+:: Clean old Java process occupying port 8080
+echo Cleaning old backend process...
+taskkill /F /IM java.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+
 echo Starting MySQL + Redis...
 docker compose up -d
 
