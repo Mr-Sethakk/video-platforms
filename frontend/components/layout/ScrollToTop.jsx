@@ -21,7 +21,7 @@ export default function ScrollToTop() {
     <button
       type="button"
       onClick={scrollToTop}
-      className={`fixed bottom-36 right-4 z-40 w-14 h-14 rounded-full bg-[#212121] border border-[rgba(255,255,255,0.08)] shadow-xl hover:bg-[#3F3F3F] hover:scale-110 flex items-center justify-center transition-all duration-300 ${
+      className={`fixed bottom-36 right-4 z-40 w-14 h-14 rounded-full bg-[#35455c] border border-[rgba(255,255,255,0.08)] shadow-xl hover:bg-[#3F3F3F] hover:scale-110 flex items-center justify-center transition-all duration-300 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
       }`}
       aria-label="回到顶部"
