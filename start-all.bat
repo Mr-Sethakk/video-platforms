@@ -48,7 +48,7 @@ echo        MySQL ready
 
 :: ===== Backend =====
 echo [3/5] Starting Spring Boot (port 8080)...
-start "Backend-8080" cmd /k "set JAVA_HOME=D:\JDK21&& set PATH=D:\JDK21\bin;D:\maven\maven-mvnd-2.0.0-rc-3-windows-amd64\mvn\bin;%PATH%&& cd /d %~dp0backend&& mvn spring-boot:run"
+start "Backend-8080" cmd /k "set JAVA_HOME=D:\JDK21&& set PATH=D:\JDK21\bin;D:\maven\maven-mvnd-2.0.0-rc-3-windows-amd64\mvn\bin;%PATH%&& set DEEPSEEK_API_KEY=%DEEPSEEK_API_KEY%&& cd /d %~dp0backend&& mvn spring-boot:run -Dspring-boot.run.jvmArguments=-DDEEPSEEK_API_KEY=%DEEPSEEK_API_KEY%"
 
 :: ===== Wait for Backend =====
 echo        Waiting for backend to be ready...
