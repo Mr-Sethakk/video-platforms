@@ -5,14 +5,22 @@ import { STORAGE_KEYS, ROLES } from '@/lib/constants';
 
 const AuthContext = createContext(null);
 
-const VIP_LEVELS = {
+export const VIP_LEVELS = {
   NONE:  { key: null,     label: '免费用户',   color: '#717171', bg: '#717171/15' },
   VIP:   { key: 'VIP',    label: 'VIP',        color: '#F59E0B', bg: '#F59E0B/15' },
   VVIP:  { key: 'VVIP',   label: 'VVIP',       color: '#6366F1', bg: '#6366F1/15' },
   SVIP:  { key: 'SVIP',   label: 'Super VIP',  color: '#EF4444', bg: '#EF4444/15' },
 };
 
-export { VIP_LEVELS };
+/** Per-user VIP storage key */
+function vipKey(username) {
+  return username ? `vip_${username}` : null;
+}
+
+function loadVip(userObj) {
+  if (!userObj?.username) return null;
+  return localStorage.getItem(vipKey(userObj.username)) || null;
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -22,15 +30,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.USER);
     const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-    const storedVip = localStorage.getItem('vip_level');
     if (stored && token) {
       try {
-        setUser(JSON.parse(stored));
+        const u = JSON.parse(stored);
+        setUser(u);
+        setVipLevel(loadVip(u));
       } catch {
         localStorage.removeItem(STORAGE_KEYS.USER);
       }
     }
-    if (storedVip) setVipLevel(storedVip);
     setLoading(false);
   }, []);
 
@@ -42,9 +50,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem(STORAGE_KEYS.TOKEN, data.token);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
     setUser(data.user);
-    // Restore saved VIP level on login
-    const savedVip = localStorage.getItem('vip_level');
-    if (savedVip) setVipLevel(savedVip);
+    setVipLevel(loadVip(data.user));
     return data;
   }, []);
 
@@ -59,15 +65,17 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
-    // Keep vip_level so it persists across sessions
     setUser(null);
     setVipLevel(null);
   }, []);
 
   const upgradeVip = useCallback((levelKey) => {
-    localStorage.setItem('vip_level', levelKey);
+    const k = vipKey(user?.username);
+    if (k) {
+      localStorage.setItem(k, levelKey);
+    }
     setVipLevel(levelKey);
-  }, []);
+  }, [user]);
 
   const vipInfo = VIP_LEVELS[vipLevel] || VIP_LEVELS.NONE;
 
