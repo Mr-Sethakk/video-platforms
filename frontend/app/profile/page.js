@@ -242,27 +242,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* ===== Quick links ===== */}
-            <div className="bg-[#212121] rounded-2xl border border-[rgba(255,255,255,0.06)] p-5 mb-6">
-              <h3 className="text-sm font-medium text-[#AAAAAA] mb-3">快捷入口</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { href: '/watchlist', label: '📋 我的片单' },
-                  { href: '/membership', label: `${vipLevel ? '👑' : '💎'} ${vipLevel ? '管理会员' : '升级会员'}` },
-                  { href: '/movies?sort=rating', label: '⭐ 高分排行' },
-                  { href: '/movies?sort=year', label: '🆕 最新上映' },
-                ].map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center justify-center gap-2 h-12 rounded-xl bg-[#0F0F0F] hover:bg-[#272727] text-white text-sm transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
             {/* ===== Logout ===== */}
             <button
               onClick={handleLogout}
