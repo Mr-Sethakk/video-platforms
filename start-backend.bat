@@ -7,13 +7,14 @@ set "PATH=%JAVA_HOME%\bin;%MVN_HOME%\mvn\bin;%PATH%"
 
 cd /d "%~dp0"
 
-:: Load env vars from backend\.env
+:: Read API key from .env
+set "DK="
 for /f "usebackq tokens=1,2 delims==" %%a in ("%~dp0backend\.env") do (
-    set "%%a=%%b"
+    if "%%a"=="DEEPSEEK_API_KEY" set "DK=%%b"
 )
 
-:: Clean old Java process
-echo Cleaning old backend process...
+:: Clean old Java
+echo Cleaning old backend...
 taskkill /F /IM java.exe >nul 2>&1
 timeout /t 1 /nobreak >nul
 
@@ -28,5 +29,10 @@ if errorlevel 1 goto wait_mysql
 
 echo Starting Spring Boot on port 8080...
 cd backend
-mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-DDEEPSEEK_API_KEY=%DEEPSEEK_API_KEY%"
+if defined DK (
+    mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-DDEEPSEEK_API_KEY=%DK%"
+) else (
+    echo [WARN] No DEEPSEEK_API_KEY found — AI chat will not work
+    mvn spring-boot:run
+)
 pause

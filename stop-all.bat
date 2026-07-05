@@ -1,6 +1,8 @@
 @echo off
 title Movie Platform - Stop All
 
+cd /d "%~dp0"
+
 echo ================================================
 echo   Movie Platform - Stop All Services
 echo ================================================
@@ -23,8 +25,7 @@ if errorlevel 1 (
 )
 
 echo [3/3] Stopping Docker containers...
-cd /d "%~dp0"
-docker compose stop 2>&1
+docker compose stop >nul 2>&1
 if errorlevel 1 (
     echo        Docker not running or compose failed
 ) else (
