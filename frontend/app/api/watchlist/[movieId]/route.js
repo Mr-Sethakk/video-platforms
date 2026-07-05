@@ -1,4 +1,4 @@
-const watchlists = new Map();
+import watchlists from '@/app/api/_data/watchlist';
 
 function getUser(request) {
   const authHeader = request.headers.get("Authorization");

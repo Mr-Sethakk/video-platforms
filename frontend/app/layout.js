@@ -2,6 +2,7 @@ import '@/styles/globals.css'
 import { AuthProvider } from '@/hooks/useAuth'
 import { ToastProvider } from '@/components/ui/Toast'
 import AIChatFloat from '@/components/layout/AIChatFloat'
+import ScrollToTop from '@/components/layout/ScrollToTop'
 
 export const metadata = {
   title: '🎬 电影APP',
@@ -11,10 +12,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="zh-CN">
+      <head>
+        <meta name="referrer" content="no-referrer" />
+      </head>
       <body className="bg-[#0F0F0F] text-white font-sans antialiased">
         <AuthProvider>
           <ToastProvider>
             {children}
+            <ScrollToTop />
             <AIChatFloat />
           </ToastProvider>
         </AuthProvider>

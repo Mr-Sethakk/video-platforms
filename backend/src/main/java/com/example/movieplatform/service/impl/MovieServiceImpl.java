@@ -31,9 +31,9 @@ public class MovieServiceImpl implements MovieService {
         boolean hasKeyword = keyword != null && !keyword.isEmpty();
 
         if (hasGenre && hasKeyword) {
-            moviePage = movieRepository.findByGenreAndTitleContainingAndDeleted(genre, keyword, 0, pageable);
+            moviePage = movieRepository.findByGenreAndTitleContaining(genre, keyword, pageable);
         } else if (hasGenre) {
-            moviePage = movieRepository.findByGenreAndDeleted(genre, 0, pageable);
+            moviePage = movieRepository.findByGenreContaining(genre, pageable);
         } else if (hasKeyword) {
             moviePage = movieRepository.findByTitleContainingAndDeleted(keyword, 0, pageable);
         } else {
@@ -99,8 +99,6 @@ public class MovieServiceImpl implements MovieService {
             return Sort.by(Sort.Direction.DESC, "rating");
         } else if ("year".equals(sort)) {
             return Sort.by(Sort.Direction.DESC, "year");
-        } else if ("title".equals(sort)) {
-            return Sort.by(Sort.Direction.ASC, "title");
         }
         return Sort.by(Sort.Direction.DESC, "createdAt");
     }

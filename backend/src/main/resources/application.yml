@@ -1,5 +1,12 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  tomcat:
+    uri-encoding: UTF-8
 
 spring:
   application:
@@ -51,8 +58,15 @@ jwt:
   secret: YTJkM2Y0ZTVmNmE3YjhkOWMwZDBhMWIyYzNkNGU1ZjZhN2I4YzlkMGEwYjFjMmQzZTRmNWY2YTdiOGM5ZDBlMWYyZjNmNGY1ZjZhN2I4YzlkMGEwYjFjMmQzZTRmNWY2YTdiOGM5ZDBlMQ==
   expiration: 86400000
 
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY:}
+  base-url: https://api.deepseek.com
+  model: deepseek-chat
+
 dashscope:
-  api-key: ${DASHSCOPE_API_KEY:your-dashscope-api-key-here}
+  api-key: ${DASHSCOPE_API_KEY:sk-ws-H.RXXRHEX.gu7V.MEYCIQCDLh-Kg3Ikb1jZLKBL_dyEhHwTOXpG-b4c-BAukoAaEAIhAJnOS9SnJKt9q-nTYp-dvMTuiJD4OfhRyPZLavogeUxQ}
+  base-url: ${DASHSCOPE_BASE_URL:https://ws-ty4n3y70wi13155a.cn-beijing.maas.aliyuncs.com/compatible-mode/v1}
+  vision-model: qwen-vl-max
 
 cors:
   allowed-origins: http://localhost:3000

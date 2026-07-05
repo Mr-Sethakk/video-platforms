@@ -2,58 +2,64 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '@/lib/api';
 
-/**
- * 无限滚动加载电影列表
- * @param {Object} params - 查询参数 { genre, sort, search, pageSize }
- */
 export function useInfiniteMovies(params = {}) {
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const paramsRef = useRef(params);
+  const prevParamsRef = useRef(null);
 
-  // 当筛选条件变化时重置
-  useEffect(() => {
-    const prev = paramsRef.current;
-    if (prev.genre !== params.genre || prev.sort !== params.sort || prev.search !== params.search) {
-      setMovies([]);
-      setPage(1);
-      setHasMore(true);
-    }
-    paramsRef.current = params;
-  }, [params.genre, params.sort, params.search]);
-
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+  const loadMore = useCallback(async (currentPage) => {
     setLoading(true);
     setError(null);
     try {
       const query = new URLSearchParams();
-      query.set('page', String(page));
+      query.set('page', String(currentPage));
       query.set('pageSize', String(params.pageSize || 24));
       if (params.genre) query.set('genre', params.genre);
       if (params.sort) query.set('sort', params.sort);
       if (params.search) query.set('q', params.search);
 
       const data = await apiFetch(`/movies?${query.toString()}`);
-      setMovies(prev => [...prev, ...data.records]);
+      if (currentPage === 1) {
+        setMovies(data.records);
+      } else {
+        setMovies(prev => [...prev, ...data.records]);
+      }
       setHasMore(data.page < data.totalPages);
-      setPage(p => p + 1);
+      setPage(currentPage + 1);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore, params]);
+  }, [params.genre, params.sort, params.search, params.pageSize]);
 
-  // 初始加载
+  // Reset + reload when filter params change
   useEffect(() => {
-    if (movies.length === 0 && hasMore && !loading) {
-      loadMore();
-    }
-  }, []);
+    const prev = prevParamsRef.current;
+    const changed = !prev
+      || prev.genre !== params.genre
+      || prev.sort !== params.sort
+      || prev.search !== params.search;
 
-  return { movies, loading, hasMore, error, loadMore, setMovies };
+    if (changed) {
+      setMovies([]);
+      setPage(1);
+      setHasMore(true);
+      setError(null);
+      loadMore(1);
+    }
+    prevParamsRef.current = { genre: params.genre, sort: params.sort, search: params.search };
+  }, [params.genre, params.sort, params.search]);
+
+  // Incremental load (page > 1, called by MovieGrid observer)
+  const loadNextPage = useCallback(() => {
+    if (!loading && hasMore) {
+      loadMore(page);
+    }
+  }, [loading, hasMore, page, loadMore]);
+
+  return { movies, loading, hasMore, error, loadMore: loadNextPage };
 }

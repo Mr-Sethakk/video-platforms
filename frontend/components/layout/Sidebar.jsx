@@ -4,21 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
-const GENRE_EMOJI_MAP = {
-  '剧情': '🎭',
-  '科幻': '🚀',
-  '爱情': '❤️',
-  '动作': '💥',
-  '喜剧': '😂',
-  '恐怖': '👻',
-  '动画': '✨',
-  '悬疑': '🔍',
-  '纪录片': '📹',
-  '奇幻': '🧙',
-  '战争': '⚔️',
-  '犯罪': '🕵️',
-};
-
 const NAV_BASE_CLASSES =
   'flex items-center gap-6 h-10 px-3 rounded-xl text-sm text-white transition-colors hover:bg-[#272727]';
 const NAV_COLLAPSED_CLASSES =
@@ -66,7 +51,7 @@ function Divider() {
   return <div className="mx-3 my-2 border-t border-[rgba(255,255,255,0.08)]" />;
 }
 
-export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount = 0, isAdmin = false }) {
+export default function Sidebar({ isOpen, onClose, watchlistCount = 0, isAdmin = false }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
 
@@ -117,28 +102,17 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
 
         <Divider />
 
-        {/* ===== Section 2: Genres ===== */}
-        {genres.map((genre) => {
-          const emoji = GENRE_EMOJI_MAP[genre] || '🎬';
-          const href = `/movies?genre=${encodeURIComponent(genre)}`;
-          return (
-            <NavItem
-              key={genre}
-              href={href}
-              icon={emoji}
-              label={genre}
-              collapsed={!isOpen}
-              active={isActive(href)}
-              onClick={handleNavClick}
-            />
-          );
-        })}
-
-        <Divider />
-
-        {/* ===== Section 3: Authenticated user features ===== */}
+        {/* ===== Section 2: Personal (authenticated) ===== */}
         {isAuthenticated && (
           <>
+            <NavItem
+              href="/profile"
+              icon="👤"
+              label="个人中心"
+              collapsed={!isOpen}
+              active={isActive('/profile')}
+              onClick={handleNavClick}
+            />
             <NavItem
               href="/watchlist"
               icon="📋"
@@ -146,14 +120,6 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
               collapsed={!isOpen}
               active={isActive('/watchlist')}
               badge={watchlistCount}
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/favorites"
-              icon="⭐"
-              label="我的收藏"
-              collapsed={!isOpen}
-              active={isActive('/favorites')}
               onClick={handleNavClick}
             />
             <NavItem
@@ -243,28 +209,10 @@ export default function Sidebar({ isOpen, onClose, genres = [], watchlistCount =
 
               <Divider />
 
-              {genres.map((genre) => {
-                const emoji = GENRE_EMOJI_MAP[genre] || '🎬';
-                const href = `/movies?genre=${encodeURIComponent(genre)}`;
-                return (
-                  <NavItem
-                    key={genre}
-                    href={href}
-                    icon={emoji}
-                    label={genre}
-                    collapsed={false}
-                    active={isActive(href)}
-                    onClick={handleNavClick}
-                  />
-                );
-              })}
-
-              <Divider />
-
               {isAuthenticated && (
                 <>
+                  <NavItem href="/profile" icon="👤" label="个人中心" collapsed={false} active={isActive('/profile')} onClick={handleNavClick} />
                   <NavItem href="/watchlist" icon="📋" label="我的片单" collapsed={false} active={isActive('/watchlist')} badge={watchlistCount} onClick={handleNavClick} />
-                  <NavItem href="/favorites" icon="⭐" label="我的收藏" collapsed={false} active={isActive('/favorites')} onClick={handleNavClick} />
                   <NavItem href="/upload" icon="📤" label="上传视频" collapsed={false} active={isActive('/upload')} onClick={handleNavClick} />
                   <Divider />
                 </>

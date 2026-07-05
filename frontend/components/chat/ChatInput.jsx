@@ -1,32 +1,22 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Send, Image } from 'lucide-react';
+import { useState } from 'react';
+import { Send } from 'lucide-react';
 
 export default function ChatInput({ onSend, disabled, quickQuestions = [] }) {
   const [message, setMessage] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const fileInputRef = useRef(null);
 
   const handleSend = () => {
     const trimmed = message.trim();
-    if ((!trimmed && !imageFile) || disabled) return;
-    onSend(trimmed, imageFile || undefined);
+    if (!trimmed || disabled) return;
+    onSend(trimmed);
     setMessage('');
-    setImageFile(null);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
     }
   };
 
@@ -52,46 +42,8 @@ export default function ChatInput({ onSend, disabled, quickQuestions = [] }) {
         </div>
       )}
 
-      {/* Image preview chip */}
-      {imageFile && (
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex items-center gap-2 bg-[#272727] rounded-full px-3 py-1">
-            <Image size={14} className="text-[#AAAAAA]" />
-            <span className="text-xs text-[#AAAAAA] truncate max-w-[120px]">
-              {imageFile.name}
-            </span>
-            <button
-              type="button"
-              onClick={() => setImageFile(null)}
-              className="text-[#717171] hover:text-white transition-colors"
-            >
-              &times;
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Input row */}
       <div className="flex items-center gap-2">
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        {/* Image upload button */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="w-9 h-9 rounded-full hover:bg-[#272727] flex items-center justify-center text-[#AAAAAA] cursor-pointer transition-colors flex-shrink-0"
-          disabled={disabled}
-        >
-          <Image size={24} strokeWidth={1.5} />
-        </button>
-
         {/* Text input */}
         <input
           type="text"
@@ -107,7 +59,7 @@ export default function ChatInput({ onSend, disabled, quickQuestions = [] }) {
         <button
           type="button"
           onClick={handleSend}
-          disabled={disabled || (!message.trim() && !imageFile)}
+          disabled={disabled || !message.trim()}
           className="w-9 h-9 rounded-full bg-[#6366F1] flex items-center justify-center text-white hover:bg-[#4F46E5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
         >
           <Send size={18} strokeWidth={1.5} />
