@@ -2,8 +2,9 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, Search, Mic, Bell, User } from 'lucide-react';
+import { Menu, Search, Camera, Bell, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import PosterSearchModal from '@/components/upload/PosterSearchModal';
 
 export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
   const { user, isAuthenticated } = useAuth();
@@ -11,6 +12,7 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [posterModalOpen, setPosterModalOpen] = useState(false);
 
   const handleSearch = useCallback(
     (e) => {
@@ -35,6 +37,7 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
   );
 
   return (
+    <>
     <header className="fixed top-0 left-0 right-0 h-14 bg-[#0F0F0F] z-50 border-b border-[rgba(255,255,255,0.08)]">
       <div className="grid grid-cols-[auto_1fr_auto] items-center h-full px-4 gap-4">
         {/* ---- LEFT: Hamburger + Logo ---- */}
@@ -82,12 +85,12 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
           </div>
           <button
             type="button"
-            className={`w-10 h-10 rounded-full bg-[#272727] hover:bg-[#3F3F3F] ml-2 flex items-center justify-center shrink-0 transition-all duration-1000 ease-in-out ${
-              searchFocused ? 'rotate-[360deg]' : 'rotate-0'
-            }`}
-            aria-label="语音搜索"
+            onClick={() => setPosterModalOpen(true)}
+            className="w-10 h-10 rounded-full bg-[#272727] hover:bg-[#3F3F3F] ml-2 flex items-center justify-center shrink-0 transition-all duration-200 group"
+            aria-label="海报识图找片"
+            title="识图找片"
           >
-            <Mic size={20} strokeWidth={1.5} className="text-white" />
+            <Camera size={20} strokeWidth={1.5} className="text-white group-hover:text-[#6366F1] transition-colors" />
           </button>
         </form>
 
@@ -165,5 +168,10 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
         </div>
       </div>
     </header>
+    <PosterSearchModal
+      isOpen={posterModalOpen}
+      onClose={() => setPosterModalOpen(false)}
+    />
+  </>
   );
 }
