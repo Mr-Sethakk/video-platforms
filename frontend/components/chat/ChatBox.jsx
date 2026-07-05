@@ -6,22 +6,11 @@ import ChatMessage from '@/components/chat/ChatMessage';
 import ChatInput from '@/components/chat/ChatInput';
 import { QUICK_QUESTIONS } from '@/lib/constants';
 
-function TypingIndicator() {
-  return (
-    <div className="flex items-center gap-1 px-4 py-2">
-      <span className="w-2 h-2 bg-[#717171] rounded-full animate-bounce [animation-delay:0ms]" />
-      <span className="w-2 h-2 bg-[#717171] rounded-full animate-bounce [animation-delay:150ms]" />
-      <span className="w-2 h-2 bg-[#717171] rounded-full animate-bounce [animation-delay:300ms]" />
-    </div>
-  );
-}
-
 export default function ChatBox() {
   const {
     messages,
     sendMessage,
-    isLoading,
-    isStreaming,
+    streaming,
     error,
   } = useChat();
 
@@ -33,17 +22,17 @@ export default function ChatBox() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isStreaming]);
+  }, [messages, streaming]);
 
-  const handleSend = (messageText, imageFile) => {
-    sendMessage(messageText, imageFile);
+  const handleSend = (messageText) => {
+    sendMessage(messageText);
   };
 
   return (
     <div className="flex flex-col h-full bg-[#0F0F0F]">
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-        {messages.length === 0 && (
+        {messages.slice(1).length === 0 && (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <p className="text-[#AAAAAA] text-sm">
@@ -56,22 +45,16 @@ export default function ChatBox() {
           </div>
         )}
 
-        {messages.map((msg) => (
-          <ChatMessage
-            key={msg.id}
-            message={msg}
-            isStreaming={false}
-          />
-        ))}
-
-        {/* Streaming indicator */}
-        {isStreaming && (
-          <div className="flex justify-start">
-            <div className="bg-[#212121] rounded-2xl rounded-bl-md max-w-[85%]">
-              <TypingIndicator />
-            </div>
-          </div>
-        )}
+        {messages.map((msg) => {
+          const isLastAssistant = msg.role === 'assistant' && streaming && msg === messages[messages.length - 1];
+          return (
+            <ChatMessage
+              key={msg.id}
+              message={msg}
+              isStreaming={isLastAssistant}
+            />
+          );
+        })}
 
         {/* Error display */}
         {error && (
@@ -86,7 +69,7 @@ export default function ChatBox() {
       {/* Input area */}
       <ChatInput
         onSend={handleSend}
-        disabled={isLoading}
+        disabled={streaming}
         quickQuestions={QUICK_QUESTIONS}
       />
     </div>

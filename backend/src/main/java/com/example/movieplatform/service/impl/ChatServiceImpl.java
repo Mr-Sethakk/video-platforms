@@ -85,6 +85,8 @@ public class ChatServiceImpl implements ChatService {
                 - 使用友好的语气，适当使用 emoji
                 - 用户情绪低落时给予安慰和鼓励
                 - 回复简洁有温度，不超过 300 字
+                - 禁止使用任何 Markdown 格式（不要用 ** 加粗、不要用 ### 标题、不要用 ``` 代码块、不要用 - 列表标记），全部使用纯文本
+                - 禁止输出特殊 Unicode 符号和修饰符，只使用基本中文字符和标点
 
                 """ + movieContext;
     }
