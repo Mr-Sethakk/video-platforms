@@ -64,6 +64,18 @@ export default function MovieDetailPage() {
     }
   }, [id])
 
+  const fetchComments = useCallback(async () => {
+    setCommentsLoading(true)
+    try {
+      const data = await apiFetch(`/comments?movieId=${id}&pageSize=50`)
+      setComments(data.records || [])
+    } catch {
+      // Comments may fail if endpoint not ready
+    } finally {
+      setCommentsLoading(false)
+    }
+  }, [id])
+
   useEffect(() => {
     fetchMovie()
     fetchRecommendations()
@@ -89,18 +101,6 @@ export default function MovieDetailPage() {
       // Silently fail
     }
   }, [])
-
-  const fetchComments = useCallback(async () => {
-    setCommentsLoading(true)
-    try {
-      const data = await apiFetch(`/comments?movieId=${id}&pageSize=50`)
-      setComments(data.records || [])
-    } catch {
-      // Comments may fail if endpoint not ready
-    } finally {
-      setCommentsLoading(false)
-    }
-  }, [id])
 
   const handleSubmitComment = useCallback(async () => {
     if (!commentText.trim() || commentSubmitting) return
