@@ -1,12 +1,17 @@
-version: '3.8'
+# ==============================================================
+# 影视平台 · Docker Compose 全栈编排
+# 一键启动: docker compose up -d
+# 首次启动 MySQL 会初始化 schema + 种子数据，需等待约 30-60s
+# ==============================================================
 
 services:
+  # ========== MySQL 8.0 ==========
   mysql:
     image: mysql:8.0
-    container_name: movie-platform-mysql
+    container_name: movie-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: movie_platform
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
@@ -21,14 +26,18 @@ services:
       - --collation-server=utf8mb4_unicode_ci
       - --default-authentication-plugin=caching_sha2_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 40s
+    networks:
+      - movie-net
 
+  # ========== Redis 7 ==========
   redis:
     image: redis:7-alpine
-    container_name: movie-platform-redis
+    container_name: movie-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -37,12 +46,63 @@ services:
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 3s
       retries: 5
+    networks:
+      - movie-net
+
+  # ========== Spring Boot 后端 ==========
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: movie-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # 指向 Docker 内部服务名（覆盖 application.yml 的 localhost 默认值）
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET:-ZGV2LW9ubHktc2VjcmV0LWtleS1mb3ItbG9jYWwtZGV2ZWxvcG1lbnQtbm90LWZvci1wcm9kdWN0aW9u}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      # Java 内存限制（适配低配机器）
+      JAVA_OPTS: -Xms256m -Xmx512m
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - movie-net
+
+  # ========== Next.js 前端 ==========
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: movie-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - movie-net
 
 volumes:
   mysql_data:
     driver: local
   redis_data:
     driver: local
+
+networks:
+  movie-net:
+    driver: bridge
