@@ -1,0 +1,40 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+.next/
+npm-debug.log*
+
+# Java / Maven
+target/
+*.class
+*.jar
+
+# Environment (sensitive — never in image)
+.env
+.env.local
+
+# Docs & scripts (not needed at runtime)
+docs/
+scripts/
+*.md
+!README.md
+
+# Teaching materials
+暑假实习/
+功能设计文档/
+bug修复文档/
+演示视频/
