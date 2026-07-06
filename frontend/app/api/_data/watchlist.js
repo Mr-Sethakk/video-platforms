@@ -1,5 +1,8 @@
-// 共享内存片单: Map<userId, Set<movieId>>
-// 供 watchlist/route.js 和 watchlist/[movieId]/route.js 共用
-const watchlists = new Map();
+// 使用 global 确保所有 API route 共享同一个 Map 实例
+// 避免 Next.js 模块打包导致的多实例问题
 
-export default watchlists;
+if (!global.__watchlists) {
+  global.__watchlists = new Map();
+}
+
+export default global.__watchlists;

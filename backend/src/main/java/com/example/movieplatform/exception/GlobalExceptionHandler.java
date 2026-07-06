@@ -3,6 +3,7 @@ package com.example.movieplatform.exception;
 import com.example.movieplatform.dto.response.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,11 +15,21 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /** 返回与业务异常码对应的 HTTP 状态码，而非一刀切 400 */
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<Void> handleBusinessException(BusinessException e) {
+    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e) {
         log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
-        return Result.error(e.getCode(), e.getMessage());
+        HttpStatus status = mapHttpStatus(e.getCode());
+        return ResponseEntity.status(status).body(Result.error(e.getCode(), e.getMessage()));
+    }
+
+    /** 将业务码映射为合理的 HTTP 状态 */
+    private HttpStatus mapHttpStatus(int code) {
+        if (code == 401) return HttpStatus.UNAUTHORIZED;
+        if (code == 403) return HttpStatus.FORBIDDEN;
+        if (code == 404) return HttpStatus.NOT_FOUND;
+        if (code == 409) return HttpStatus.CONFLICT;
+        return HttpStatus.BAD_REQUEST;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,6 +1,7 @@
 package com.example.movieplatform.controller;
 
 import com.example.movieplatform.dto.response.Result;
+import com.example.movieplatform.entity.Movie;
 import com.example.movieplatform.entity.Watchlist;
 import com.example.movieplatform.service.UserService;
 import com.example.movieplatform.service.WatchlistService;
@@ -19,9 +20,9 @@ public class WatchlistController {
     private final UserService userService;
 
     @GetMapping
-    public Result<List<Watchlist>> getWatchlist() {
+    public Result<List<Movie>> getWatchlist() {
         Long userId = userService.getCurrentUser().getId();
-        List<Watchlist> watchlist = watchlistService.getWatchlist(userId);
+        List<Movie> watchlist = watchlistService.getWatchlist(userId);
         return Result.success(watchlist);
     }
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import Link from 'next/link'
 import TopBar from '@/components/layout/TopBar'
 import Sidebar from '@/components/layout/Sidebar'
 import MovieCard from '@/components/movie/MovieCard'
@@ -12,13 +11,13 @@ import { Heart } from 'lucide-react'
 
 export default function WatchlistPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [removingIds, setRemovingIds] = useState(new Set())
 
   const { isAuthenticated, isAdmin } = useAuth()
   const {
     items,
     loading,
     count,
+    addToWatchlist,
     removeFromWatchlist,
     isInWatchlist,
   } = useWatchlist()
@@ -28,15 +27,8 @@ export default function WatchlistPage() {
 
   const handleRemove = useCallback(
     async (movieId) => {
-      setRemovingIds((prev) => new Set([...prev, movieId]))
-      // Wait for fade-out animation
-      await new Promise((r) => setTimeout(r, 300))
+      // 即时调用 API，乐观更新由 removeFromWatchlist 内部处理
       await removeFromWatchlist(movieId)
-      setRemovingIds((prev) => {
-        const next = new Set(prev)
-        next.delete(movieId)
-        return next
-      })
     },
     [removeFromWatchlist]
   )
@@ -50,7 +42,6 @@ export default function WatchlistPage() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={closeSidebar}
-           
             watchlistCount={0}
             isAdmin={isAdmin}
           />
@@ -86,7 +77,6 @@ export default function WatchlistPage() {
         <Sidebar
           isOpen={sidebarOpen}
           onClose={closeSidebar}
-         
           watchlistCount={count}
           isAdmin={isAdmin}
         />
@@ -137,21 +127,14 @@ export default function WatchlistPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 gap-y-10 px-6">
               {items.map((movie) => (
-                <div
+                <MovieCard
                   key={movie.id}
-                  className={`transition-all duration-300 ${
-                    removingIds.has(movie.id)
-                      ? 'opacity-0 scale-95'
-                      : 'opacity-100 scale-100'
-                  }`}
-                >
-                  <MovieCard
-                    movie={movie}
-                    variant="grid"
-                    onRemoveFromWatchlist={handleRemove}
-                    isInWatchlist={true}
-                  />
-                </div>
+                  movie={movie}
+                  variant="grid"
+                  onAddToWatchlist={addToWatchlist}
+                  onRemoveFromWatchlist={handleRemove}
+                  isInWatchlist={isInWatchlist(movie.id)}
+                />
               ))}
             </div>
           )}
