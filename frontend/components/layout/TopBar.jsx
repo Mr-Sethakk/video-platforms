@@ -1,34 +1,104 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, Search, Camera, Bell, User } from 'lucide-react';
+import { Menu, Search, Camera, Bell, User, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useSearchHistory } from '@/hooks/useSearchHistory';
+import { useToast } from '@/components/ui/Toast';
+import SearchDropdown from '@/components/search/SearchDropdown';
 import PosterSearchModal from '@/components/upload/PosterSearchModal';
+import { apiFetch } from '@/lib/api';
+import { SEARCH } from '@/lib/constants';
 
 export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
   const { user, isAuthenticated } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
+  const { history, addHistory, deleteHistory, clearHistory } = useSearchHistory();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [posterModalOpen, setPosterModalOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
-  const handleSearch = useCallback(
+  const searchFormRef = useRef(null);
+  const blurTimeoutRef = useRef(null);
+
+  // 700ms 防抖
+  const debouncedQuery = useDebounce(searchQuery, SEARCH.DEBOUNCE_MS);
+
+  // 联想请求
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setSuggestions([]);
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setSuggestionsLoading(true);
+
+    apiFetch(`/search/suggestions?q=${encodeURIComponent(debouncedQuery)}`)
+      .then((data) => {
+        if (!cancelled) {
+          setSuggestions(data.suggestions || []);
+          setSuggestionsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSuggestions([]);
+          setSuggestionsLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [debouncedQuery]);
+
+  // 清理 blur timeout
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+    };
+  }, []);
+
+  // ========== Handlers ==========
+
+  const handleSearchSubmit = useCallback(
     (e) => {
-      e.preventDefault();
+      e?.preventDefault();
       const trimmed = searchQuery.trim();
-      if (trimmed) {
-        router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-        setSearchExpanded(false);
+
+      // 空关键词：不发起搜索
+      if (!trimmed) return;
+
+      // 超长截断
+      if (trimmed.length > SEARCH.MAX_KEYWORD_LENGTH) {
+        addToast(`关键词过长，已自动截断为前${SEARCH.MAX_KEYWORD_LENGTH}个字符`, 'info');
       }
+      const finalKeyword = trimmed.slice(0, SEARCH.MAX_KEYWORD_LENGTH);
+
+      // 保存搜索历史
+      addHistory(finalKeyword);
+
+      // 关闭下拉
+      setDropdownOpen(false);
+      setSearchExpanded(false);
+
+      router.push(`/search?q=${encodeURIComponent(finalKeyword)}`);
     },
-    [searchQuery, router]
+    [searchQuery, router, addHistory, addToast]
   );
 
   const handleKeyDown = useCallback(
     (e) => {
       if (e.key === 'Escape') {
+        setDropdownOpen(false);
         setSearchExpanded(false);
         setSearchQuery('');
       }
@@ -36,6 +106,61 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
     []
   );
 
+  const handleFocus = useCallback(() => {
+    setSearchFocused(true);
+    setDropdownOpen(true);
+    clearBlurTimeout();
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setSearchFocused(false);
+    // 延迟关闭，让 onMouseDown 有机会触发
+    blurTimeoutRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 200);
+  }, []);
+
+  const clearBlurTimeout = useCallback(() => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+  }, []);
+
+  // 清空输入
+  const handleClearInput = useCallback(() => {
+    setSearchQuery('');
+    setSuggestions([]);
+  }, []);
+
+  // 点击联想建议 → 跳转详情页
+  const handleSelectSuggestion = useCallback(
+    (movie) => {
+      addHistory(searchQuery.trim().slice(0, SEARCH.MAX_KEYWORD_LENGTH));
+      setDropdownOpen(false);
+      router.push(`/movies/${movie.id}`);
+    },
+    [searchQuery, router, addHistory]
+  );
+
+  // 点击历史记录 → 填入搜索框并执行搜索
+  const handleSelectHistory = useCallback(
+    (keyword) => {
+      setSearchQuery(keyword);
+      setDropdownOpen(false);
+      router.push(`/search?q=${encodeURIComponent(keyword)}`);
+    },
+    [router]
+  );
+
+  const handleDeleteHistory = useCallback(
+    (keyword) => {
+      deleteHistory(keyword);
+    },
+    [deleteHistory]
+  );
+
+  // ========== Render ==========
   return (
     <>
     <header className="fixed top-0 left-0 right-0 h-14 bg-[#0F0F0F] z-50 border-b border-[rgba(255,255,255,0.08)]">
@@ -58,10 +183,10 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
           </Link>
         </div>
 
-        {/* ---- CENTER: Search (desktop full, mobile collapsible) ---- */}
-        {/* Desktop search — always visible */}
+        {/* ---- CENTER: Search (desktop) ---- */}
         <form
-          onSubmit={handleSearch}
+          ref={searchFormRef}
+          onSubmit={handleSearchSubmit}
           className={`hidden sm:flex mx-auto items-center transition-all duration-1000 ease-in-out ${
             searchFocused ? 'w-[560px]' : 'w-[400px]'
           } max-w-[calc(100vw-280px)] min-w-0`}
@@ -76,13 +201,39 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               onKeyDown={handleKeyDown}
-              placeholder="搜索电影..."
-              className="w-full h-10 rounded-full bg-[#121212] border border-[#303030] focus:border-[#6366F1] focus:outline-none px-4 pl-10 text-white placeholder:text-[#888] text-sm transition-all duration-1000 ease-in-out"
+              placeholder="搜索电影、导演、演员..."
+              className="w-full h-10 rounded-full bg-[#121212] border border-[#303030] focus:border-[#6366F1] focus:outline-none px-4 pl-10 pr-10 text-white placeholder:text-[#888] text-sm transition-all duration-1000 ease-in-out"
+            />
+            {/* 清空按钮 — 输入内容后出现 */}
+            {searchQuery && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleClearInput}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888] hover:text-white transition-colors"
+              >
+                <X size={16} strokeWidth={1.5} />
+              </button>
+            )}
+
+            {/* ===== 搜索下拉面板 ===== */}
+            <SearchDropdown
+              isOpen={dropdownOpen}
+              history={history}
+              suggestions={suggestions}
+              loading={suggestionsLoading}
+              searchQuery={searchQuery}
+              onSelectSuggestion={handleSelectSuggestion}
+              onSelectHistory={handleSelectHistory}
+              onDeleteHistory={handleDeleteHistory}
+              onClearHistory={clearHistory}
+              onClose={() => setDropdownOpen(false)}
             />
           </div>
+
           <button
             type="button"
             onClick={() => setPosterModalOpen(true)}
@@ -106,35 +257,82 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
             </button>
           ) : (
             <form
-              onSubmit={handleSearch}
-              className="fixed inset-0 z-[60] bg-[#0F0F0F] flex items-center px-4 gap-3"
+              onSubmit={handleSearchSubmit}
+              className="fixed inset-0 z-[60] bg-[#0F0F0F] flex flex-col pt-2"
             >
-              <div className="relative flex-1 max-w-[640px] mx-auto">
-                <Search
-                  size={18}
-                  strokeWidth={1.5}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888] pointer-events-none"
-                />
-                <input
-                  autoFocus
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="搜索电影..."
-                  className="w-full h-10 rounded-full bg-[#121212] border border-[#303030] focus:border-[#6366F1] focus:outline-none px-4 pl-10 text-white placeholder:text-[#888] text-sm"
-                />
+              <div className="flex items-center px-4 gap-3">
+                <div className="relative flex-1 max-w-[640px]">
+                  <Search
+                    size={18}
+                    strokeWidth={1.5}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888] pointer-events-none"
+                  />
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="搜索电影、导演、演员..."
+                    className="w-full h-10 rounded-full bg-[#121212] border border-[#303030] focus:border-[#6366F1] focus:outline-none px-4 pl-10 pr-10 text-white placeholder:text-[#888] text-sm"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={handleClearInput}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888] hover:text-white transition-colors"
+                    >
+                      <X size={16} strokeWidth={1.5} />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchExpanded(false);
+                    setSearchQuery('');
+                    setDropdownOpen(false);
+                  }}
+                  className="text-[#AAAAAA] text-sm hover:text-white transition-colors shrink-0"
+                >
+                  取消
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchExpanded(false);
-                  setSearchQuery('');
-                }}
-                className="text-[#AAAAAA] text-sm hover:text-white transition-colors shrink-0"
-              >
-                取消
-              </button>
+
+              {/* Mobile dropdown — full width below input */}
+              {searchQuery && (
+                <div className="px-4 mt-3 relative">
+                  <SearchDropdown
+                    isOpen={true}
+                    history={history}
+                    suggestions={suggestions}
+                    loading={suggestionsLoading}
+                    searchQuery={searchQuery}
+                    onSelectSuggestion={handleSelectSuggestion}
+                    onSelectHistory={handleSelectHistory}
+                    onDeleteHistory={handleDeleteHistory}
+                    onClearHistory={clearHistory}
+                    onClose={() => {}}
+                  />
+                </div>
+              )}
+
+              {/* Mobile: show history when no query */}
+              {!searchQuery && history.length > 0 && (
+                <div className="px-4 mt-3 relative">
+                  <SearchDropdown
+                    isOpen={true}
+                    history={history}
+                    suggestions={[]}
+                    loading={false}
+                    searchQuery=""
+                    onSelectHistory={handleSelectHistory}
+                    onDeleteHistory={handleDeleteHistory}
+                    onClearHistory={clearHistory}
+                  />
+                </div>
+              )}
             </form>
           )}
         </div>
@@ -153,7 +351,7 @@ export default function TopBar({ onToggleSidebar, isSidebarOpen }) {
           {/* User avatar / login link */}
           {isAuthenticated && user ? (
             <Link href="/profile" className="w-10 h-10 rounded-full hover:bg-[#272727] flex items-center justify-center transition-colors">
-              <div className="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#6366F1] flex items-center justify-center">
                 <User size={18} strokeWidth={1.5} className="text-white" />
               </div>
             </Link>

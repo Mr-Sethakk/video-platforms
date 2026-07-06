@@ -42,3 +42,17 @@ export const QUICK_QUESTIONS = [
   '介绍《肖申克的救赎》',
   '推荐评分最高的电影',
 ];
+
+// ========== 搜索相关 ==========
+export const SEARCH = {
+  /** 搜索历史存储上限 */
+  MAX_HISTORY: 20,
+  /** 搜索关键词最大长度 */
+  MAX_KEYWORD_LENGTH: 50,
+  /** 联想请求防抖延迟（ms） */
+  DEBOUNCE_MS: 700,
+  /** 联想结果最大展示数量 */
+  MAX_SUGGESTIONS: 5,
+  /** 搜索历史 localStorage key */
+  HISTORY_KEY: 'search_history',
+};
