@@ -7,6 +7,7 @@ import { ArrowLeft, Send, User as UserIcon } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import Sidebar from '@/components/layout/Sidebar'
 import MovieCard from '@/components/movie/MovieCard'
+import VideoPlayer from '@/components/video/VideoPlayer'
 import Skeleton from '@/components/ui/Skeleton'
 import Empty from '@/components/ui/Empty'
 import { useAuth } from '@/hooks/useAuth'
@@ -29,7 +30,7 @@ export default function MovieDetailPage() {
   const [commentText, setCommentText] = useState('')
   const [commentSubmitting, setCommentSubmitting] = useState(false)
 
-  const { isAdmin, isAuthenticated, user } = useAuth()
+  const { isAdmin, isAuthenticated, user, vipLevel } = useAuth()
   const {
     count: watchlistCount,
     addToWatchlist,
@@ -237,6 +238,19 @@ export default function MovieDetailPage() {
                   <ArrowLeft size={16} strokeWidth={1.5} />
                   返回
                 </Link>
+
+                {/* Video Player — when movie has video */}
+                {movie.hasVideo && movie.videoUrl && (
+                  <div className="mb-4">
+                    <VideoPlayer
+                      src={movie.videoUrl}
+                      movieId={movie.id}
+                      movieTitle={movie.title}
+                      requiredVipLevel={movie.requiredVipLevel || 'USER'}
+                      userVipLevel={vipLevel || 'USER'}
+                    />
+                  </div>
+                )}
 
                 {/* Poster */}
                 <div className="rounded-xl overflow-hidden bg-[#0F0F0F] max-h-[500px]">

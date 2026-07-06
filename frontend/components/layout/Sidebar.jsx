@@ -146,6 +146,22 @@ export default function Sidebar({ isOpen, onClose, watchlistCount = 0, isAdmin =
               onClick={handleNavClick}
             />
             <NavItem
+              href="/admin/videos"
+              icon="🎬"
+              label="视频管理"
+              collapsed={!isOpen}
+              active={isActive('/admin/videos')}
+              onClick={handleNavClick}
+            />
+            <NavItem
+              href="/admin/videos/upload"
+              icon="📤"
+              label="上传视频"
+              collapsed={!isOpen}
+              active={isActive('/admin/videos/upload')}
+              onClick={handleNavClick}
+            />
+            <NavItem
               href="/admin/review"
               icon="✅"
               label="视频审核"
@@ -221,6 +237,8 @@ export default function Sidebar({ isOpen, onClose, watchlistCount = 0, isAdmin =
               {isAdmin && (
                 <>
                   <NavItem href="/admin" icon="📊" label="管理后台" collapsed={false} active={isActive('/admin')} onClick={handleNavClick} />
+                  <NavItem href="/admin/videos" icon="🎬" label="视频管理" collapsed={false} active={isActive('/admin/videos')} onClick={handleNavClick} />
+                  <NavItem href="/admin/videos/upload" icon="📤" label="上传视频" collapsed={false} active={isActive('/admin/videos/upload')} onClick={handleNavClick} />
                   <NavItem href="/admin/review" icon="✅" label="视频审核" collapsed={false} active={isActive('/admin/review')} onClick={handleNavClick} />
                   <Divider />
                 </>

@@ -70,4 +70,16 @@ public class Movie {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // ========== Video playback fields ==========
+    @Column(name = "has_video", nullable = false)
+    @Builder.Default
+    private Boolean hasVideo = false;
+
+    @Column(name = "video_url", length = 500)
+    private String videoUrl;
+
+    @Column(name = "required_vip_level", length = 20)
+    @Builder.Default
+    private String requiredVipLevel = "USER";
 }

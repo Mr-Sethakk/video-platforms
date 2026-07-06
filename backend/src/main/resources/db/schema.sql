@@ -181,3 +181,16 @@ INSERT INTO `movie` (`title`, `description`, `rating`, `year`, `genre`, `directo
 ('复仇者联盟4', '终局之战。灭霸打了响指让宇宙一半生命消失，剩下的复仇者们必须集结完成最后的逆转。', 8.5, 2019, '动作', '安东尼·罗素', '小罗伯特·唐尼, 克里斯·埃文斯', '/posters/endgame.jpg', '181分钟', '美国'),
 ('龙猫', '只有小孩子才能看到龙猫。姐妹俩搬到乡下，遇到了各种森林精灵，尤其是憨态可掬的龙猫。', 9.2, 1988, '动画', '宫崎骏', '日高法子, 坂本千夏', '/posters/totoro.jpg', '86分钟', '日本')
 ON DUPLICATE KEY UPDATE `title` = `title`;
+
+-- ============================================================
+-- Migration: Video playback columns for movie table
+-- ============================================================
+ALTER TABLE `movie`
+    ADD COLUMN IF NOT EXISTS `has_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否有可播视频',
+    ADD COLUMN IF NOT EXISTS `video_url` VARCHAR(500) DEFAULT NULL COMMENT '视频文件URL',
+    ADD COLUMN IF NOT EXISTS `required_vip_level` VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '观看所需VIP等级: USER/VIP/VVIP/SVIP';
+
+UPDATE `movie` SET `has_video` = TRUE, `video_url` = '/videos/demo/demo.mp4', `required_vip_level` = 'USER' WHERE `id` NOT IN (1, 2, 4);
+UPDATE `movie` SET `has_video` = TRUE, `video_url` = '/videos/1/trailer.mp4', `required_vip_level` = 'USER' WHERE `id` = 1;
+UPDATE `movie` SET `has_video` = TRUE, `video_url` = '/videos/2/trailer.mp4', `required_vip_level` = 'VIP' WHERE `id` = 2;
+UPDATE `movie` SET `has_video` = TRUE, `video_url` = '/videos/4/trailer.mp4', `required_vip_level` = 'USER' WHERE `id` = 4;

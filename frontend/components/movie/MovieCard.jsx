@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Play, Heart } from 'lucide-react';
+import { Play, Heart, Lock } from 'lucide-react';
 import { API_BASE } from '@/lib/constants';
 
 export default function MovieCard({
@@ -14,6 +14,18 @@ export default function MovieCard({
 }) {
   const [imgError, setImgError] = useState(false);
   const [useFallback, setUseFallback] = useState(false);
+
+  const hasVideo = movie.hasVideo === true;
+  const vipLevel = movie.requiredVipLevel || 'USER';
+
+  const VIP_LABELS = {
+    USER:  { label: '',      style: '' },
+    VIP:   { label: 'VIP',   style: 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30' },
+    VVIP:  { label: 'VVIP',  style: 'bg-[#6366F1]/20 text-[#6366F1] border-[#6366F1]/30' },
+    SVIP:  { label: 'SVIP',  style: 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30' },
+  };
+
+  const vipInfo = VIP_LABELS[vipLevel] || VIP_LABELS.USER;
 
   const handleFavoriteClick = (e) => {
     e.preventDefault();
@@ -114,6 +126,21 @@ export default function MovieCard({
             <span className="text-[#F59E0B]">⭐</span>
             {movie.rating}
           </div>
+
+          {/* ▶ 可播放角标 */}
+          {hasVideo && (
+            <div className="absolute top-2 right-2 bg-[#22C55E] rounded-full px-2 py-0.5 text-[10px] font-bold text-white flex items-center gap-1 shadow-lg">
+              <Play size={10} strokeWidth={2.5} fill="white" />
+              可播放
+            </div>
+          )}
+
+          {/* VIP 等级标签 */}
+          {hasVideo && vipLevel !== 'USER' && vipInfo.label && (
+            <div className={`absolute bottom-2 left-2 rounded-full px-1.5 py-0.5 text-[10px] font-semibold border ${vipInfo.style}`}>
+              {vipInfo.label}
+            </div>
+          )}
         </div>
 
         <h3 className="text-sm font-medium text-white leading-5 line-clamp-2 mt-2 group-hover:text-[#6366F1] transition-colors">

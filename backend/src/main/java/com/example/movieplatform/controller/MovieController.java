@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -46,5 +48,20 @@ public class MovieController {
         }
         List<Movie> movies = movieService.searchMovies(keyword.trim());
         return Result.success(movies);
+    }
+
+    /** 获取电影关联的视频信息 */
+    @GetMapping("/{id}/video")
+    public Result<Map<String, Object>> getMovieVideo(@PathVariable Long id) {
+        Movie movie = movieService.getMovieById(id);
+        if (!Boolean.TRUE.equals(movie.getHasVideo())) {
+            return Result.success(Map.of("hasVideo", false));
+        }
+        return Result.success(Map.of(
+            "hasVideo", true,
+            "videoUrl", Optional.ofNullable(movie.getVideoUrl()).orElse(""),
+            "requiredVipLevel", Optional.ofNullable(movie.getRequiredVipLevel()).orElse("USER"),
+            "movieTitle", movie.getTitle()
+        ));
     }
 }
