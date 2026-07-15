@@ -74,122 +74,41 @@ export default function Sidebar({ isOpen, onClose, watchlistCount = 0, isAdmin =
       `}
     >
       <nav className="py-2 pb-4">
-        {/* ===== Section 1: Main nav ===== */}
-        <NavItem
-          href="/"
-          icon="🏠"
-          label="首页"
-          collapsed={!isOpen}
-          active={isActive('/')}
-          onClick={handleNavClick}
-        />
-        <NavItem
-          href="/movies?sort=rating"
-          icon="🔥"
-          label="热门"
-          collapsed={!isOpen}
-          active={isActive('/movies?sort=rating')}
-          onClick={handleNavClick}
-        />
-        <NavItem
-          href="/movies?sort=year"
-          icon="🆕"
-          label="最新"
-          collapsed={!isOpen}
-          active={isActive('/movies?sort=year')}
-          onClick={handleNavClick}
-        />
-
-        <Divider />
-
-        {/* ===== Section 2: Personal (authenticated) ===== */}
-        {isAuthenticated && (
+        {isAdmin ? (
+          /* ===== Admin-only nav ===== */
           <>
-            <NavItem
-              href="/profile"
-              icon="👤"
-              label="个人中心"
-              collapsed={!isOpen}
-              active={isActive('/profile')}
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/watchlist"
-              icon="📋"
-              label="我的片单"
-              collapsed={!isOpen}
-              active={isActive('/watchlist')}
-              badge={watchlistCount}
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/upload"
-              icon="📤"
-              label="上传视频"
-              collapsed={!isOpen}
-              active={isActive('/upload')}
-              onClick={handleNavClick}
-            />
+            <NavItem href="/admin" icon="📊" label="仪表盘" collapsed={!isOpen} active={pathname === '/admin'} onClick={handleNavClick} />
+            <NavItem href="/admin/movies" icon="🎬" label="影视管理" collapsed={!isOpen} active={pathname.startsWith('/admin/movies')} onClick={handleNavClick} />
+            <NavItem href="/admin/categories" icon="🏷️" label="分类管理" collapsed={!isOpen} active={isActive('/admin/categories')} onClick={handleNavClick} />
+            <NavItem href="/admin/users" icon="👥" label="用户管理" collapsed={!isOpen} active={isActive('/admin/users')} onClick={handleNavClick} />
+            <NavItem href="/admin/videos" icon="🎥" label="视频管理" collapsed={!isOpen} active={pathname.startsWith('/admin/videos')} onClick={handleNavClick} />
+            <NavItem href="/admin/review" icon="✅" label="视频审核" collapsed={!isOpen} active={isActive('/admin/review')} onClick={handleNavClick} />
+            <NavItem href="/admin/membership" icon="💎" label="会员套餐" collapsed={!isOpen} active={isActive('/admin/membership')} onClick={handleNavClick} />
+            <NavItem href="/admin/orders" icon="📋" label="订单管理" collapsed={!isOpen} active={isActive('/admin/orders')} onClick={handleNavClick} />
+            <NavItem href="/admin/financials" icon="💰" label="财务管理" collapsed={!isOpen} active={isActive('/admin/financials')} onClick={handleNavClick} />
+            <NavItem href="/admin/settings" icon="⚙️" label="系统设置" collapsed={!isOpen} active={isActive('/admin/settings')} onClick={handleNavClick} />
             <Divider />
+            <NavItem href="/" icon="🏠" label="返回首页" collapsed={!isOpen} active={false} onClick={handleNavClick} />
+          </>
+        ) : (
+          /* ===== Normal user nav ===== */
+          <>
+            <NavItem href="/" icon="🏠" label="首页" collapsed={!isOpen} active={isActive('/')} onClick={handleNavClick} />
+            <NavItem href="/movies?sort=rating" icon="🔥" label="热门" collapsed={!isOpen} active={isActive('/movies?sort=rating')} onClick={handleNavClick} />
+            <NavItem href="/movies?sort=year" icon="🆕" label="最新" collapsed={!isOpen} active={isActive('/movies?sort=year')} onClick={handleNavClick} />
+            <Divider />
+            {isAuthenticated && (
+              <>
+                <NavItem href="/profile" icon="👤" label="个人中心" collapsed={!isOpen} active={isActive('/profile')} onClick={handleNavClick} />
+                <NavItem href="/watchlist" icon="📋" label="我的片单" collapsed={!isOpen} active={isActive('/watchlist')} badge={watchlistCount} onClick={handleNavClick} />
+                <NavItem href="/upload" icon="📤" label="上传视频" collapsed={!isOpen} active={isActive('/upload')} onClick={handleNavClick} />
+                <Divider />
+              </>
+            )}
+            <NavItem href="/about" icon="ℹ️" label="关于" collapsed={!isOpen} active={isActive('/about')} onClick={handleNavClick} />
+            <NavItem href="/help" icon="❓" label="帮助" collapsed={!isOpen} active={isActive('/help')} onClick={handleNavClick} />
           </>
         )}
-
-        {/* ===== Section 4: Admin ===== */}
-        {isAdmin && (
-          <>
-            <NavItem
-              href="/admin"
-              icon="📊"
-              label="管理后台"
-              collapsed={!isOpen}
-              active={isActive('/admin')}
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/admin/videos"
-              icon="🎬"
-              label="视频管理"
-              collapsed={!isOpen}
-              active={isActive('/admin/videos')}
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/admin/videos/upload"
-              icon="📤"
-              label="上传视频"
-              collapsed={!isOpen}
-              active={isActive('/admin/videos/upload')}
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/admin/review"
-              icon="✅"
-              label="视频审核"
-              collapsed={!isOpen}
-              active={isActive('/admin/review')}
-              onClick={handleNavClick}
-            />
-            <Divider />
-          </>
-        )}
-
-        {/* ===== Section 5: Help ===== */}
-        <NavItem
-          href="/about"
-          icon="ℹ️"
-          label="关于"
-          collapsed={!isOpen}
-          active={isActive('/about')}
-          onClick={handleNavClick}
-        />
-        <NavItem
-          href="/help"
-          icon="❓"
-          label="帮助"
-          collapsed={!isOpen}
-          active={isActive('/help')}
-          onClick={handleNavClick}
-        />
       </nav>
     </aside>
   );
@@ -217,35 +136,39 @@ export default function Sidebar({ isOpen, onClose, watchlistCount = 0, isAdmin =
               </Link>
             </div>
             <nav className="py-2 pb-4">
-              {/* Same nav items as desktop */}
-
-              <NavItem href="/" icon="🏠" label="首页" collapsed={false} active={isActive('/')} onClick={handleNavClick} />
-              <NavItem href="/movies?sort=rating" icon="🔥" label="热门" collapsed={false} active={isActive('/movies?sort=rating')} onClick={handleNavClick} />
-              <NavItem href="/movies?sort=year" icon="🆕" label="最新" collapsed={false} active={isActive('/movies?sort=year')} onClick={handleNavClick} />
-
-              <Divider />
-
-              {isAuthenticated && (
+              {isAdmin ? (
                 <>
-                  <NavItem href="/profile" icon="👤" label="个人中心" collapsed={false} active={isActive('/profile')} onClick={handleNavClick} />
-                  <NavItem href="/watchlist" icon="📋" label="我的片单" collapsed={false} active={isActive('/watchlist')} badge={watchlistCount} onClick={handleNavClick} />
-                  <NavItem href="/upload" icon="📤" label="上传视频" collapsed={false} active={isActive('/upload')} onClick={handleNavClick} />
-                  <Divider />
-                </>
-              )}
-
-              {isAdmin && (
-                <>
-                  <NavItem href="/admin" icon="📊" label="管理后台" collapsed={false} active={isActive('/admin')} onClick={handleNavClick} />
-                  <NavItem href="/admin/videos" icon="🎬" label="视频管理" collapsed={false} active={isActive('/admin/videos')} onClick={handleNavClick} />
-                  <NavItem href="/admin/videos/upload" icon="📤" label="上传视频" collapsed={false} active={isActive('/admin/videos/upload')} onClick={handleNavClick} />
+                  <NavItem href="/admin" icon="📊" label="仪表盘" collapsed={false} active={pathname === '/admin'} onClick={handleNavClick} />
+                  <NavItem href="/admin/movies" icon="🎬" label="影视管理" collapsed={false} active={pathname.startsWith('/admin/movies')} onClick={handleNavClick} />
+                  <NavItem href="/admin/categories" icon="🏷️" label="分类管理" collapsed={false} active={isActive('/admin/categories')} onClick={handleNavClick} />
+                  <NavItem href="/admin/users" icon="👥" label="用户管理" collapsed={false} active={isActive('/admin/users')} onClick={handleNavClick} />
+                  <NavItem href="/admin/videos" icon="🎥" label="视频管理" collapsed={false} active={pathname.startsWith('/admin/videos')} onClick={handleNavClick} />
                   <NavItem href="/admin/review" icon="✅" label="视频审核" collapsed={false} active={isActive('/admin/review')} onClick={handleNavClick} />
+                  <NavItem href="/admin/membership" icon="💎" label="会员套餐" collapsed={false} active={isActive('/admin/membership')} onClick={handleNavClick} />
+                  <NavItem href="/admin/orders" icon="📋" label="订单管理" collapsed={false} active={isActive('/admin/orders')} onClick={handleNavClick} />
+                  <NavItem href="/admin/financials" icon="💰" label="财务管理" collapsed={false} active={isActive('/admin/financials')} onClick={handleNavClick} />
+                  <NavItem href="/admin/settings" icon="⚙️" label="系统设置" collapsed={false} active={isActive('/admin/settings')} onClick={handleNavClick} />
                   <Divider />
+                  <NavItem href="/" icon="🏠" label="返回首页" collapsed={false} active={false} onClick={handleNavClick} />
+                </>
+              ) : (
+                <>
+                  <NavItem href="/" icon="🏠" label="首页" collapsed={false} active={isActive('/')} onClick={handleNavClick} />
+                  <NavItem href="/movies?sort=rating" icon="🔥" label="热门" collapsed={false} active={isActive('/movies?sort=rating')} onClick={handleNavClick} />
+                  <NavItem href="/movies?sort=year" icon="🆕" label="最新" collapsed={false} active={isActive('/movies?sort=year')} onClick={handleNavClick} />
+                  <Divider />
+                  {isAuthenticated && (
+                    <>
+                      <NavItem href="/profile" icon="👤" label="个人中心" collapsed={false} active={isActive('/profile')} onClick={handleNavClick} />
+                      <NavItem href="/watchlist" icon="📋" label="我的片单" collapsed={false} active={isActive('/watchlist')} badge={watchlistCount} onClick={handleNavClick} />
+                      <NavItem href="/upload" icon="📤" label="上传视频" collapsed={false} active={isActive('/upload')} onClick={handleNavClick} />
+                      <Divider />
+                    </>
+                  )}
+                  <NavItem href="/about" icon="ℹ️" label="关于" collapsed={false} active={isActive('/about')} onClick={handleNavClick} />
+                  <NavItem href="/help" icon="❓" label="帮助" collapsed={false} active={isActive('/help')} onClick={handleNavClick} />
                 </>
               )}
-
-              <NavItem href="/about" icon="ℹ️" label="关于" collapsed={false} active={isActive('/about')} onClick={handleNavClick} />
-              <NavItem href="/help" icon="❓" label="帮助" collapsed={false} active={isActive('/help')} onClick={handleNavClick} />
             </nav>
           </aside>
         </div>

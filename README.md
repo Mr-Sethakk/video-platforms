@@ -32,7 +32,21 @@
 | 海报识图 | 搜索栏旁 📷 | DashScope 多模态识别 |
 | 登录/注册 | `/login` `/register` | JWT 认证 |
 | 会员中心 | `/membership` | VIP/VVIP/SVIP 三档充值 |
-| 管理后台 | `/admin` | 统计仪表盘 + 视频管理 + 上传 + 审核 |
+
+### 🛡️ 管理后台（仅 ADMIN 角色可见）
+
+| 页面 | 路径 | 数据来源 | 说明 |
+|------|------|----------|------|
+| 📊 仪表盘 | `/admin` | 后端 API | 统计卡片 + 收入趋势 + 会员分布 + 内容进度条 + 热门 Top10 |
+| 🎬 影视管理 | `/admin/movies` | 后端 API | 搜索/分页/批量操作/新增编辑 Modal |
+| 🏷️ 分类管理 | `/admin/categories` | localStorage | 四类分组（类型/地区/年份/标签）+ CRUD |
+| 👥 用户管理 | `/admin/users` | 后端 API | 搜索/列表/角色标签 |
+| 🎥 视频管理 | `/admin/videos` | Mock 数据 | 12 条视频 + 状态统计 + 搜索筛选 + 上传页 |
+| ✅ 视频审核 | `/admin/review` | Mock 数据 | 7 条待审核 + 通过/拒绝/跳过 + 统计栏 |
+| 💎 会员套餐 | `/admin/membership` | localStorage | 三档套餐卡片 + 渐变边框 + CRUD |
+| 📋 订单管理 | `/admin/orders` | Mock 数据 | 7 条订单 + 状态筛选 + 审核通过 |
+| 💰 财务管理 | `/admin/financials` | Mock 数据 | 四统计卡 + 周期切换 + 收入趋势 + 支付分布 |
+| ⚙️ 系统设置 | `/admin/settings` | localStorage | 四 Tab（基本/会员/支付/SEO）+ 保存
 
 ---
 

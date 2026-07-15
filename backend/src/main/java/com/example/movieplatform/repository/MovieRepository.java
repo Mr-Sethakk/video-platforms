@@ -34,4 +34,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT DISTINCT m.genre FROM Movie m WHERE m.deleted = 0 AND m.genre IS NOT NULL ORDER BY m.genre")
     java.util.List<String> findDistinctGenres();
+
+    long countByDeleted(Integer deleted);
 }
